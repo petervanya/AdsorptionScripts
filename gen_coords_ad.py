@@ -314,16 +314,16 @@ else:
   raise NotImplementedError
 
 # ===== get H20 coords
-dist=2         # in Angstroms
-ref_Pt_atom=3
-dist_vect = np.array([0,0,dist])
+dist=2.00         # in Angstroms
+ref_Pt_atom=25
+dist_vect = np.array([0.0,0.0,dist])
 xyzH2O = np.array( setH2Ocoords(coords[ref_Pt_atom-1,:],dist_vect) )
 
 	
 # ===== print into file
 printH20(xyzH2O,filename)
 printPt(coords,filename)
-print coordsPt
+print coords
 print xyzH2O
 
 # ===== freezing coords
@@ -331,7 +331,7 @@ if len(sys.argv)>2:
   print len(sys.argv)
   if sys.argv[2]=="freeze":
 		f=open(filename,"a")
-		for i in range(3,N_Pt+3):
+		for i in range(4,N_Pt+4):
 		  f.write(str(i)+" "+"F"+"\n")
 		f.write("\n")
 		f.close()
