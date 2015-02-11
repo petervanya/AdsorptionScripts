@@ -2,3 +2,5 @@
 *.xyz
 *.out
 *~
+cluster_run_ad.o*
+cluster_run_ad.po*
