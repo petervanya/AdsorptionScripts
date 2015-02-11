@@ -1,0 +1,7 @@
+*.[1-9]
+*.xyz
+*.gjf
+*.out
+*~
+cluster_run.sh.o*
+cluster_run.sh.po*
