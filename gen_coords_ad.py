@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # Script to generate Gaussian input file for 
-# Pt clusters 9.10.9 with H20 on top
+# Pt clusters 9.10.9 with H2O on top
 # 29/01/14
 import sys
 import numpy as np
