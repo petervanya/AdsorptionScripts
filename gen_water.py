@@ -1,6 +1,9 @@
 #!/usr/bin/python
-# script to generate water coordinates shifted by h
+# =====
 # 20/02/15
+# Generate coords of water in xz plane
+# 3 cmd ln args -- x,y,z shift from 0,0,0
+# =====
 import sys
 import numpy as np
 import numpy.matlib
