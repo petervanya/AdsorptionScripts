@@ -1,6 +1,8 @@
 #!/usr/bin/python
+# =====
 # script to generate oxygen coordinate
 # 20/02/15
+# =====
 import sys
 import numpy as np
 import numpy.matlib
@@ -10,7 +12,7 @@ def savecoords(coords,filename):
 		f=open(filename,"w")
 		s = str("O\t")
 		for j in range(3):
-			s += "%.3f" % coords[0,j] + "\t"
+			s += "%.5f" % coords[0,j] + "\t"
 		f.write(s+"\n")
 		f.close()
 		print "Coords saved in",filename
