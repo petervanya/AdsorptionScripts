@@ -42,7 +42,6 @@ def get_coords4(a,x0,y0,z0):
 		for i in range(2):
 			coords[1+i,0] = -a/2 + i*a
 			coords[1+i,1] = v
-		coords[3,0] = 0.0
 		coords[3,1] = 2*v
 		
 		coords[:,0] += x0
@@ -155,6 +154,9 @@ print "Coords saved in",filename
 # ===== one layer
 if config=="3":
 	coords=get_coords3(a,0,0,0)
+
+elif config=="4":
+	coords=get_coords4(a,0,0,0)
 
 elif config=="6":
 	coords=get_coords6(a,0,0,0)
