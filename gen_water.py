@@ -8,7 +8,7 @@ import sys
 import numpy as np
 import numpy.matlib
 import argparse
-from math import pi, sqrt, sin, cos, radians
+from math import pi, sqrt, sin, cos, radians, degrees
 
 def printH2O(coordsH2O,filename):
 		f=open(filename,"w")
@@ -24,17 +24,18 @@ def printH2O(coordsH2O,filename):
 		f.close()
 
 # ===== parse arguments
-help_text = "Generate xyz water coordinates in vertical plane"
+help_text = "Generate xyz water coordinates in yz plane."
 sign_off = "Author: pv278@cam.ac.uk"
 parser = argparse.ArgumentParser(description=help_text,epilog=sign_off)
+
 parser.add_argument(
-				"-e",
-				"--eta",
-				dest="eta",
+				"-pPt",
+				"--posPt",
+				dest="posPt",
 				action="store",
-				type=int,
-				help="Position on surface: 0=custom, 1=top, 2=bridge, 3=fcc",
-				metavar="n"
+				type=str,
+				help="Position of O atom in Pt lattice vectors in the form 'a1_a2_a3'",
+				metavar="p"
 )
 
 parser.add_argument(
@@ -43,60 +44,79 @@ parser.add_argument(
 				dest="pos",
 				action="store",
 				type=str,
-				help="Coordinates in the form 'x_y_z'",
-				metavar="x_y_z"
+				help="Shift of O above Pt atom in the form 'x_y_z'",
+				metavar="p"
 )
 
 parser.add_argument(
-				"-pPt",
-				"--posPt",
-				dest="posPt",
+				"-phi",
+				dest="angle_phi",
 				action="store",
-				type=str,
-				help="Coordinates in Pt lattice vectors in the form 'x_y_z'",
-				metavar="x_y_z"
+				type=float,
+				default=0.0,
+				help="Rotation around z-axis (phi) in degrees (done first)",
+				metavar="t"
+)
+
+parser.add_argument(
+				"-theta",
+				dest="angle_theta",
+				action="store",
+				type=float,
+				default=0.0,
+				help="Rotation around y-axis (theta) in degrees",
+				metavar="t"
 )
 
 arguments = parser.parse_args()
 
 # ===== process input
 dist=np.zeros(3)
-#if len(sys.argv)<4:
-#	print "You did not specify enough shift components, use default vector: [0,0,1] A."
-#	dist = [0,0,1]
-#else:
-#	for i in range(3):
-#		dist[i] = float(sys.argv[i+1])
-#	print "Shift distance: ",dist
-
-eta = arguments.eta
 
 if(arguments.pos):
 	pos = arguments.pos.split("_")
-	dist = [float(i) for i in pos]
-	print "Shift distance: ", dist
+	dist += [float(i) for i in pos]
 
 aPt=2.775
 vPt=aPt*sqrt(3.0)/2
 hPt=aPt*sqrt(2.0/3)
 
-basePt = np.array([[aPt,	aPt/2,aPt/2],
+basePt = np.array([[aPt, aPt/2,	aPt/2],
          	  	     [0.0, vPt,		vPt/3],
-          	  	   [0.0, 0.0,		hPt]])
+          	  	   [0.0, 0.0,		hPt  ]])
 
 if(arguments.posPt):
 	pos = arguments.posPt.split("_")
-	dist = [float(i) for i in pos]
-	dist = np.dot(basePt,np.array(dist))
-	print "Shift distance: ", dist
+	pos = [float(i) for i in pos]
+	dist += np.dot(basePt,np.array(pos))
+
+print "Total shift: ", dist
 
 # ===== water coords
-theta = radians(104.45)                   # angle between H atoms
+alpha = radians(104.45)                   # angle between H atoms
 l_OH = 0.9584                             # bond length between O and H
 coords=np.zeros((3,3))
-coords[1,1] += l_OH*sin(theta/2)          # shift x-coord of 1st H
-coords[2,1] += -l_OH*sin(theta/2)         # shift x-coord of 2nd H
-coords[1:3,2] += l_OH*cos(theta/2)        # shift z-coords of Hs
+coords[1,1] += l_OH*sin(alpha/2)
+coords[2,1] += -l_OH*sin(alpha/2)
+coords[1:3,2] += l_OH*cos(alpha/2)
+
+# ===== rotate and shift the molecule
+phi = radians(arguments.angle_phi)
+theta = radians(arguments.angle_theta)
+Rphi = np.array([[cos(phi),-sin(phi),0],        # rotation matrix for phi
+                 [sin(phi), cos(phi),0],
+								 [0,        0,       1]])
+Rtheta = np.array([[cos(theta),0,-sin(theta)],
+                   [0,         1, 0         ],
+									 [sin(theta),0, cos(theta)]])
+
+for i in range(3):                        # rotation in phi
+  coords[i,:] = np.dot(Rphi,coords[i,:])
+print "Rotated by phi = ",degrees(phi)
+
+for i in range(3):                        # rotation in theta
+  coords[i,:] = np.dot(Rtheta,coords[i,:])
+print "Rotated by theta = ",degrees(theta)
 
 coords += np.matlib.repmat(dist,3,1)      # shift all atoms by dist
 
