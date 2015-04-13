@@ -5,5 +5,7 @@
 *~
 cluster_run.sh.o*
 cluster_run.sh.po*
+cottrell.sh.o*
+cottrell.sh.po*
 cluster_list
 OLD/
