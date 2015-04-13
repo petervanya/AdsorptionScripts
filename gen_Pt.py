@@ -124,12 +124,12 @@ def get_coords10(a,x0,y0,z0):
 		v=sqrt(3.0)/2*a
 		coords=np.zeros((10,3))
 		for i in range(3):
-			coords[i,0] = a/2 + i*a
+			coords[i,0] = a*i
 		for i in range(4):
-			coords[i+3,0] = a*i
+			coords[i+3,0] = -a/2 + a*i
 			coords[i+3,1] = v
 		for i in range(3):
-			coords[i+7,0] = a/2 + a*i
+			coords[i+7,0] = a*i
 			coords[i+7,1] = 2*v
 
 		coords[:,0] += x0
@@ -199,31 +199,24 @@ elif config=="5_10_5":
    coords=np.zeros((num_atoms,3))
    # 1st layer
    for i in range(3):
-     coords[i,0] = a/2 + a*i
+     coords[i,0] = a*i
      coords[i,1] = 2*v/3
    for i in range(2):
-     coords[i+3,0] = a + a*i
-     coords[i+3,1] = 2*v/3 + v
+     coords[i+3,0] = a/2 + a*i
+     coords[i+3,1] = 5*v/3
+   for i in range(5):
+     coords[i,2] = -h
    # 2nd layer
-   for i in range(3):
-     coords[L1+i,0] = a/2 + a*i
-   for i in range(4):
-     coords[L1+i+3,0] = a*i
-     coords[L1+i+3,1] = v
-   for i in range(3):
-     coords[L1+i+7,0] = a/2 + a*i
-     coords[L1+i+7,1] = 2*v
-   for i in range(10):
-     coords[L1+i,2] = h
+   coords[L1:L1+L2,:] = gen_coords10(a,0,0,0)
    # 3rd layer
    for i in range(2):
-     coords[L1+L2+i,0] = a + a*i
+     coords[L1+L2+i,0] = a/2 + a*i
      coords[L1+L2+i,1] = v/3
    for i in range(3):
-     coords[L1+L2+i+2,0] = a/2 + a*i
+     coords[L1+L2+i+2,0] = a*i
      coords[L1+L2+i+2,1] = 4*v/3
    for i in range(5):
-     coords[L1+L2+i,2] = 2*h
+     coords[L1+L2+i,2] = h
      
 elif config=="9_10_9":
    arr,num_atoms = get_config(config)
@@ -234,28 +227,30 @@ elif config=="9_10_9":
    coords=np.zeros((num_atoms,3))
    # 1st layer
    for i in range(4):
-     coords[i,0] = a*i
-     coords[i,1] = 5*v/3
+     coords[i,0] = -a/2 + a*i
+     coords[i,1] = -v/3
    for i in range(3):
-     coords[i+4,0] = a/2 + a*i
-     coords[i+4,1] = 2*v/3
+     coords[i+4,0] = a*i
+     coords[i+4,1] = -v/3 + v
    for i in range(2):
-     coords[i+7,0] = a + a*i
-     coords[i+7,1] = -v/3
+     coords[i+7,0] = a/2 + a*i
+     coords[i+7,1] = -v/3 + 2*v
+   for i in range(L1):
+     coords[i,2] = -h
    # 2nd layer
-   coords[L1:L1+L2,:] = get_coords10(a,0,0,h)
+   coords[L1:L1+L2,:] = get_coords10(a,0,0,0)
    # 3rd layer
-   for i in range(4):
-     coords[L1+L2+i,0] = a*i
+   for i in range(2):
+     coords[L1+L2+i,0] = a/2 + a*i
      coords[L1+L2+i,1] = v/3
    for i in range(3):
-     coords[L1+L2+i+4,0] = a/2 + a*i
-     coords[L1+L2+i+4,1] = 4*v/3
-   for i in range(2):
-     coords[L1+L2+i+7,0] = a + a*i
-     coords[L1+L2+i+7,1] = 7*v/3
-   for i in range(9):
-     coords[L1+L2+i,2] = 2*h
+     coords[L1+L2+i+2,0] = a*i
+     coords[L1+L2+i+2,1] = v/3 + v
+   for i in range(4):
+     coords[L1+L2+i+5,0] = -a/2 + a*i
+     coords[L1+L2+i+5,1] = v/3 + 2*v
+   for i in range(L3):
+     coords[L1+L2+i,2] = h
    
 else: 
   raise NotImplementedError
