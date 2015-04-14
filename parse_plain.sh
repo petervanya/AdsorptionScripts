@@ -40,7 +40,7 @@ for i in {0..10}; do
     then conv="Yes"
     else conv="No"
   fi
-  cycles=`cat S_$i/Pt.out | grep "cycles$" | awk '{print $5 "\t" $(NF-1)}'`
+  E_cycles=`cat S_$i/Pt.out | grep "cycles$" | awk '{print $5 "\t" $(NF-1)}'`
   err=`cat S_$i/Pt.out | grep "Conv=" | awk '{print substr($(NF-2),6,8)}'`
   #
   # printing time in minutes: $4=days, $6=hours, $8=minutes, $10=seconds
@@ -48,6 +48,6 @@ for i in {0..10}; do
   #
   runtime=`cat S_$i/Pt.out | grep "^ Job cpu" | awk '{print $4":"$6":"$8":"$10}'`
 
-  echo -e $i "\t" $conv "\t" $cycles "\t" $err "\t" $runtime
+  echo -e $i "\t" $conv "\t" $E_cycles "\t" $err "\t" $runtime
 done
 
