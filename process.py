@@ -50,47 +50,48 @@ if(args.centre):
   if n not in range(1,N+1):
     raise ValueError
   else:
-    shift_vec = C[n-1,:] #np.array([float(i) for i in args.shift("_")])
+    shift_vec = C[n-1,:]
     C -= repmat(shift_vec,N,1)
+    print "Molecule centred around atom",n
 
 # ===== align atoms n1 and n2 to -- SO(3) rotation
 if(args.align):
-	n1,n2 = [int(i) for i in args.align.split("_")]
-	if (n1 not in range(1,N+1)) or (n2 not in range(1,N+1)):
-	  raise ValueError
-	vec12 = C[n1-1,:] - C[n2-1,:]
-	axis = np.array([1,0,0])
-	alpha = acos( np.dot(vec12,axis)/norm(vec12) )
-	omega = np.cross(vec12,axis)
-	omega /= norm(omega)
-	R = np.matrix([[0,        -omega[2], omega[1]],
-		             [ omega[2], 0,       -omega[0]],
-		             [-omega[1], omega[0], 0       ]])
-	R *= -alpha
+  n1,n2 = [int(i) for i in args.align.split("_")]
+  if (n1 not in range(1,N+1)) or (n2 not in range(1,N+1)):
+    raise ValueError
+  vec12 = C[n1-1,:] - C[n2-1,:]
+  axis = np.array([1,0,0])
+  alpha = acos( np.dot(vec12,axis)/norm(vec12) )
+  omega = np.cross(vec12,axis)
+  omega /= norm(omega)
+  R = np.matrix([[0,        -omega[2], omega[1]],
+                 [ omega[2], 0,       -omega[0]],
+                 [-omega[1], omega[0], 0       ]])
+  R *= -alpha
 
-	for i in range(N):
-		C[i,:] = np.dot(C[i,:],expm(R))
-	#print C
+  for i in range(N):
+    C[i,:] = np.dot(C[i,:],expm(R))
+  print "Atoms",n1,"and",n2,"aligned on x-axis"
 
 # ===== rotate by given theta and phi
 if(args.rotate):
-	theta,phi = [radians(float(i)) for i in args.rotate.split("_")]
-	Rphi = np.array([[cos(phi),-sin(phi),0],
-		               [sin(phi), cos(phi),0],
-		               [0,        0,       1]])
-	#print Rphi
-	Rtheta = np.array([[cos(theta),0,-sin(theta)],
-		                 [0,         1, 0         ],
-		                 [sin(theta),0, cos(theta)]])
-	#print Rtheta
+  theta,phi = [radians(float(i)) for i in args.rotate.split("_")]
+  Rphi = np.array([[cos(phi),-sin(phi),0],
+                   [sin(phi), cos(phi),0],
+                   [0,        0,       1]])
+  #print Rphi
+  Rtheta = np.array([[cos(theta),0,-sin(theta)],
+                     [0,         1, 0         ],
+                     [sin(theta),0, cos(theta)]])
+  #print Rtheta
 
-	for i in range(N):                        # rotation in phi
-		C[i,:] = np.dot(Rphi,C[i,:])
-	print "Rotated by phi =",degrees(phi)
+  for i in range(N):                        # rotation in phi
+    C[i,:] = np.dot(Rphi,C[i,:])
+  print "Rotated by phi =",degrees(phi)
 
-	for i in range(N):                        # rotation in theta
-		C[i,:] = np.dot(Rtheta,C[i,:])
-	print "Rotated by theta =",degrees(theta)
+  for i in range(N):                        # rotation in theta
+    C[i,:] = np.dot(Rtheta,C[i,:])
+  print "Rotated by theta =",degrees(theta)
 
 # ===== final shift
 if(args.shift):
@@ -98,10 +99,14 @@ if(args.shift):
   C += S
 
 B[:,1:4] = C
-f=open("out.xyz","w")
+
+# ===== print into file
+fname="out.xyz"
+f=open(fname,"w")
 for i in range(N):
   str=B[i,0] + "\t%.6f"%C[i,0] + "\t%.6f"%C[i,1] + "\t%.6f"%C[i,2] + "\n"
   f.write(str)
+print "Molecule printed into",fname
 f.close()
 
 
