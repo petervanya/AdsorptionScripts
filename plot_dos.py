@@ -18,37 +18,38 @@ parser.add_argument("-fioc","--fin_occ",dest="fin_occ",action="store",type=str,r
                     metavar="f",help="Input file for occupied e-values")
 
 parser.add_argument("-fo","--fout",dest="fout",action="store",type=str,
-                    metavar="f",help="Output file without extension")
+                    metavar="f",help="Output file (not required)")
+                                        
+parser.add_argument("-s","--spin",dest="spin",action="store",type=int,default=0,
+                    metavar="s",help="Spin of the state to plot")
 
 args=parser.parse_args()
 
-# ===== global notation
+# ===== plotting
+E = np.loadtxt(args.fin)
+Eocc = np.loadtxt(args.fin_occ)
+spin=args.spin
+print "Spin =",spin
+
 plt.rc('text', usetex=True)
 plt.rc('font', family='serif')
+
 xtics=[-4,-3,-2,-1,0,1]
 xlbl="$E-E_\mathrm{F}$ (Hartree)"
 ylbl="DoS"
-
-E = np.loadtxt(args.fin)
-Eocc = np.loadtxt(args.fin_occ)
-#print E,Eocc
-
-#Bins=np.arange(-4,1.2,0.15)
 xmin=-4
 xmax=1
 
-# ===== plotting
-Bins=np.arange(xmin,xmax+0.2,0.15)
-
-plt.hist(E[:,0],bins=Bins,edgecolor="blue")
-plt.hist(Eocc[:,0],bins=Bins,color="red",edgecolor="red")
+Bins=np.arange(xmin,xmax+0.2,0.1)
+plt.hist(E[:,spin],    bins=Bins,edgecolor="blue")
+plt.hist(Eocc[:,spin], bins=Bins,color="red",edgecolor="red")
 
 plt.xlabel(xlbl)
 plt.ylabel(ylbl)
 plt.xticks(xtics)
 plt.xlim([xmin,xmax])
+plt.ylim([0,20])
 plt.title("Density of states")
-#plt.show()
 
 #plt.tight_layout()
 # ===== save figure
