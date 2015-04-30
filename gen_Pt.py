@@ -16,8 +16,8 @@ parser=argparse.ArgumentParser(description=help,epilog="Author: pv278@cam.ac.uk"
 parser.add_argument("-c","--cluster",dest="cluster",action="store",type=str,required=True,
                     metavar="c",help="Cluster type, e.g. 9_10_9")
                     
-parser.add_argument("-s","--shift",dest="shift",action="store",type=str,
-                    metavar="s",help="Shift the initial atom by a vector x_y_z")
+parser.add_argument("-s","--shift",dest="shift",action="store",type=float,nargs=3,
+                    metavar="s",help="Shift the initial atom by a vector x,y,z")
                                         
 parser.add_argument("-dir","--dir",dest="dir",action="store",type=str,
                     metavar="dir",help="Directory to save the produced file")
@@ -144,10 +144,10 @@ v=sqrt(3.0)/2*a
 h=sqrt(2.0/3.0)*a
 cluster=args.cluster
 if args.shift:
-  shift=np.array([float(i) for i in args.shift.split("_")])
+  shift = args.shift #np.array([float(i) for i in args.shift.split("_")])
   print "Shift =",shift
 else:
-  shift=[0,0,0]
+  shift = [0,0,0]
 
 if args.dir:
   dir=args.dir
@@ -158,25 +158,25 @@ filename=str(dir+"Pt.xyz")
 
 # ===== one layer
 if cluster=="3":
-  coords=get_coords3(a,shift=[0,0,0])
+  coords=get_coords3(a,shift)
 
 elif cluster=="4":
-  coords=get_coords4(a,shift=[0,0,0])
+  coords=get_coords4(a,shift)
 
 elif cluster=="6":
-  coords=get_coords6(a,shift=[0,0,0])
+  coords=get_coords6(a,shift)
 
 elif cluster=="7":
-  coords=get_coords7(a,shift=[0,0,0])
+  coords=get_coords7(a,shift)
 
 elif cluster=="8":
-  coords=get_coords8(a,shift=[0,0,0])
+  coords=get_coords8(a,shift)
 
 elif cluster=="10":
-  coords=get_coords10(a,shift=[0,0,0])
+  coords=get_coords10(a,shift)
    
 elif cluster=="12":
-  coords=get_coords12(a,shift=[0,0,0])
+  coords=get_coords12(a,shift)
 
 # ====== two layers
 elif cluster=="6_3":
