@@ -1,99 +1,105 @@
-#!/usr/bin/python
-# =====
-# 20/02/15
-# Generate coords of water in xz plane
-# 3 cmd ln args -- x,y,z shift from 0,0,0
-# =====
-import sys
+#!/usr/bin/env python
+"""
+Usage:
+    gen_water [-t <t>] [-f <phi>] [-s <s>] [-p <p>]
+
+Generate xyz water coordinates in xz plane with the possibility of rotation.
+
+Options:
+    -h, --help              Show this message and exit
+    -s <s>,--shift <s>      Shift of O above Pt atom in "x y z"
+    -p <p>,--posPt <p>      Position of O atom in Pt lattice vectors in "x y z"
+    -f <phi>,--phi=<phi>    Rotation around z-axis (phi) in degrees (done before theta)
+    -t <t>,--theta=<t>      Rotation around y-axis (theta) in degrees
+
+pv278@cam.ac.uk, 20/02/15
+"""
 import numpy as np
-import numpy.matlib
-import argparse
-from math import pi, sqrt, sin, cos, radians, degrees
+from numpy.matlib import repmat
+#import argparse
+from docopt import docopt
+from math import *
 
-def printH2O(coordsH2O,filename):
-		f=open(filename,"w")
-		s = str("O\t")
-		for j in range(3):
-			s += "%.5f" % coordsH2O[0,j] + "\t"
-		f.write(s+"\n")
-		for i in range(1,3):
-			s = str("H\t")
-			for j in range(3):
-				s += "%.5f" % coordsH2O[i,j] + "\t"
-			f.write(s+"\n")
-		f.close()
-		print "Water coords printed into file",water.xyz
+def savedata(coords,atom_names,filename):
+    f = open(filename,"w")
+    M,N = coords.shape
+    for i in range(M):
+        line = str(atom_names[i]) + "\t"
+        for j in range(N):
+            line += "%.6f" % coords[i,j] + "\t"
+        line += "\n"
+        f.write(line)
+    f.close()
+    print "Water coords printed into file",filename
 
-# ===== parse arguments
-help_text="Generate xyz water coordinates in yz plane."
-parser=argparse.ArgumentParser(description=help_text,epilog="Author: pv278@cam.ac.uk")
+def init_water():
+    """Initialise water molecule"""
+    alpha = radians(104.45)                   # angle between H atoms
+    l_OH = 0.9584                             # bond length between O and H
+    coords = np.zeros((3,3))
+    coords[1,0] += l_OH*sin(alpha/2)
+    coords[2,0] += -l_OH*sin(alpha/2)
+    coords[1:3,2] += l_OH*cos(alpha/2)
+    return coords
 
-parser.add_argument("-pPt","--posPt",dest="posPt",action="store",type=str,
-				            metavar="p",help="Position of O atom in Pt lattice vectors in the form a1_a2_a3")
+def translation(coords,shift):
+    """shift H2O atoms"""
+    return coords + repmat(shift,3,1)
 
-parser.add_argument("-p","--pos",dest="pos",action="store",type=str,
-                    metavar="p",help="Shift of O above Pt atom in the form 'x_y_z'")
+def walk_Pt(coords,shift):
+    """shift H2O atoms in Pt lattice vectors"""
+    aPt = 2.775
+    vPt = aPt*sqrt(3.0)/2
+    hPt = aPt*sqrt(2.0/3)
+    basis = np.array([[aPt, aPt/2,  aPt/2],
+                      [0.0, vPt,    vPt/3],
+                      [0.0, 0.0,    hPt  ]])
+    return coords + np.dot(basis,shift)
 
-parser.add_argument("-phi",dest="angle_phi",action="store",type=float,default=0.0,
-                    metavar="t",help="Rotation around z-axis (phi) in degrees (done first)")
+def rotate_theta(coords,theta):
+    Rtheta = np.array([[cos(theta),0,-sin(theta)],
+                       [0,         1, 0         ],
+                       [sin(theta),0, cos(theta)]])
 
-parser.add_argument("-theta",dest="angle_theta",action="store",type=float,default=0.0,
-                    metavar="t",help="Rotation around y-axis (theta) in degrees")
+    for i in range(3):
+        coords[i,:] = np.dot(Rtheta,coords[i,:])
+    return coords
 
-arguments = parser.parse_args()
-
-# ===== process input
-dist=np.zeros(3)
-
-if(arguments.pos):
-	pos = arguments.pos.split("_")
-	dist += [float(i) for i in pos]
-
-aPt=2.775
-vPt=aPt*sqrt(3.0)/2
-hPt=aPt*sqrt(2.0/3)
-
-basePt = np.array([[aPt, aPt/2,	aPt/2],
-         	  	     [0.0, vPt,		vPt/3],
-          	  	   [0.0, 0.0,		hPt  ]])
-
-if(arguments.posPt):
-	pos = arguments.posPt.split("_")
-	pos = [float(i) for i in pos]
-	dist += np.dot(basePt,np.array(pos))
-
-print "Total shift: ", dist
-
-# ===== water coords
-alpha = radians(104.45)                   # angle between H atoms
-l_OH = 0.9584                             # bond length between O and H
-coords=np.zeros((3,3))
-coords[1,1] += l_OH*sin(alpha/2)
-coords[2,1] += -l_OH*sin(alpha/2)
-coords[1:3,2] += l_OH*cos(alpha/2)
-
-# ===== rotate and shift the molecule
-phi = radians(arguments.angle_phi)
-theta = radians(arguments.angle_theta)
-Rphi = np.array([[cos(phi),-sin(phi),0],        # rotation matrix for phi
-                 [sin(phi), cos(phi),0],
-								 [0,        0,       1]])
-Rtheta = np.array([[cos(theta),0,-sin(theta)],
-                   [0,         1, 0         ],
-									 [sin(theta),0, cos(theta)]])
-
-for i in range(3):                        # rotation in phi
-  coords[i,:] = np.dot(Rphi,coords[i,:])
-print "Rotated by phi = ",degrees(phi)
-
-for i in range(3):                        # rotation in theta
-  coords[i,:] = np.dot(Rtheta,coords[i,:])
-print "Rotated by theta = ",degrees(theta)
-
-coords += np.matlib.repmat(dist,3,1)      # shift all atoms by dist
-
-# ===== print to file
-filename="water.xyz"
-printH2O(coords,filename)
+def rotate_phi(coords,phi):
+    Rphi = np.array([[cos(phi),-sin(phi),0],
+                     [sin(phi), cos(phi),0],
+                     [0,        0,       1]])
+    for i in range(3):
+        coords[i,:] = np.dot(Rphi,coords[i,:])
+    return coords
 
 
+if __name__ == "__main__":
+    args = docopt(__doc__,version=1.0)
+#    print args
+    
+    coords = init_water()
+
+    if args["--phi"]:
+        phi = float(args["--phi"])
+        coords = rotate_phi(coords,phi)
+        print "Rotated by phi =",degrees(phi)
+
+    if args["--theta"]:
+        theta = float(args["--theta"])
+        coords = rotate_theta(coords,theta)
+        print "Rotated by theta =",degrees(theta)
+
+    if args["--posPt"]:
+        vectPt = np.array(args["--posPt"].split()).astype(float)
+        coords = walk_Pt(coords, vectPt)
+
+    if args["--shift"]:
+        shift = np.array(args["--shift"].split()).astype(float)
+        coords = translation(coords, shift)
+#    print "Total Pt shift:",dist
+    
+    filename = "water.xyz"
+    names = ["O","H","H"]
+    savedata(coords,names,filename)
+    
