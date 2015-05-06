@@ -1,34 +1,36 @@
 #!/usr/bin/env python
-"""
-Usage: gen_Pt.py [-h] -c <c> [-s <s> <s> <s>] [-d <d>]
+"""Usage: 
+    gen_Pt.py <cluster> [-s <s>] [-d <d>]
 
 Generate coordinates of atoms for certain Pt clusters
 according to Jacob et al.
 
--h --help              Show this message and exit
--c c --cluster c       Pt cluster type, e.g. 9_10_9
--s s s s --shift s s s Shift the initial atom by a vector [x,y,z]
--d d --dir d           Directory to save the produced xyz file
+Arguments:
+    <cluster>              Pt cluster type, e.g. 9_10_9
+
+Options:
+    -h --help              Show this message and exit
+    -s <s>,--shift <s>     Shift the initial atom by a vector [x,y,z]
+    -d <d>,--dir <d>       Directory to save the produced xyz file
 
 pv278@cam.ac.uk, 12/2014
 """
-import argparse
 from docopt import docopt
 import numpy as np
 from numpy.matlib import repmat
 from math import sqrt
 
 args = docopt(__doc__)
-#print args
+print args
 
-def savedata(coords,filename):
+def savedata(coords,atom_names,filename):
     f = open(filename,"w")
     M,N = coords.shape
     for i in range(M):
-        s = ""
+        line = str(atom_names[i])+"\t"
         for j in range(N):
-            s += "%.6f" % coords[i,j] + "\t"
-        f.write( "Pt\t"+s+"\n" )
+            line += "%.6f" % coords[i,j] + "\t"
+        f.write(line)
     f.close()
     
 def get_cluster(cluster):
@@ -230,15 +232,15 @@ if __name__ == "__main__":
     a = 2.775                    # atom distance in Angstroms
     v = sqrt(3.0)/2*a
     h = sqrt(2.0/3.0)*a
-    cluster = args["<c>"]
-    if args["-s"]:
-        shift = np.array(args["<s>"]).astype(float)
+    cluster = args["<cluster>"]
+    if args["--shift"]:
+        shift = np.array(args["--shift"].split()).astype(float)
         print "Shift =",shift
     else:
         shift = np.zeros(3)
     
-    if args["-d"]:
-        dir = args["<d>"] + "/"
+    if args["--dir"]:
+        dir = args["--dir"] + "/"
         print dir
     else:
         dir = ""
@@ -258,14 +260,12 @@ if __name__ == "__main__":
     elif cluster=="10": coords = get_coords10(a,shift)
        
     elif cluster=="12": coords = get_coords12(a,shift)
-    
     # two layers
     elif cluster=="6_3":  coords = get_coords6_3(a,shift)
        
     elif cluster=="8_4":  coords = get_coords8_4(a,shift)
        
     elif cluster=="12_7": coords = get_coords12_7(a,shift)
-    
     # three layers
     elif cluster=="5_10_5": coords = get_coords5_10_5(a,shift)
          
@@ -276,6 +276,7 @@ if __name__ == "__main__":
         raise SystemExit
     
     # save to file
-    savedata(coords,filename)
+    names = ["Pt"]*len(coords)
+    savedata(coords,names,filename)
     print "Coords of cluster",cluster,"saved in",filename
     
