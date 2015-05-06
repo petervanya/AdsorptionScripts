@@ -1,47 +1,45 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 """
-Script to create coordinates of atoms for certain Pt clusters
-used by Jacob et al.
-Created: 12/2014
+Usage: gen_Pt.py [-h] -c <c> [-s <s> <s> <s>] [-d <d>]
+
+Generate coordinates of atoms for certain Pt clusters
+according to Jacob et al.
+
+-h --help              Show this message and exit
+-c c --cluster c       Pt cluster type, e.g. 9_10_9
+-s s s s --shift s s s Shift the initial atom by a vector [x,y,z]
+-d d --dir d           Directory to save the produced xyz file
+
+pv278@cam.ac.uk, 12/2014
 """
-import sys
 import argparse
+from docopt import docopt
 import numpy as np
 from numpy.matlib import repmat
 from math import sqrt
 
-help="Generate coordinates of small Pt clusters according to Jacob et al."
-parser=argparse.ArgumentParser(description=help,epilog="Author: pv278@cam.ac.uk")
+args = docopt(__doc__)
+#print args
 
-parser.add_argument("-c","--cluster",dest="cluster",action="store",type=str,required=True,
-                    metavar="c",help="Cluster type, e.g. 9_10_9")
-                    
-parser.add_argument("-s","--shift",dest="shift",action="store",type=float,nargs=3,
-                    metavar="s",help="Shift the initial atom by a vector x,y,z")
-                                        
-parser.add_argument("-dir","--dir",dest="dir",action="store",type=str,
-                    metavar="dir",help="Directory to save the produced file")
-                    
-args=parser.parse_args()
-
-def printtofile(coords,filename):
-    f=open(filename,"w")
-    for i in range(coords.shape[0]):
-      s=""
-      for j in range(coords.shape[1]):
-        s += "%.5f" % coords[i,j] + "\t"
-      f.write( str("Pt\t")+s+"\n" )
+def savedata(coords,filename):
+    f = open(filename,"w")
+    M,N = coords.shape
+    for i in range(M):
+        s = ""
+        for j in range(N):
+            s += "%.6f" % coords[i,j] + "\t"
+        f.write( "Pt\t"+s+"\n" )
     f.close()
     
-# get the cluster type from the string input
 def get_cluster(cluster):
+    """get the cluster type from string input"""
     arr = [int(i) for i in cluster.split("_")]
-    num_atoms = sum(arr)
-    return arr, num_atoms
+    Natoms = sum(arr)
+    return arr, Natoms
     
 def get_coords3(a,shift=[0,0,0]):
-    v=sqrt(3.0)/2*a
-    coords=np.zeros((3,3))
+    v = sqrt(3.0)/2*a
+    coords = np.zeros((3,3))
     coords[1,0] = a
     coords[2,0] = a/2
     coords[2,1] = v
@@ -50,8 +48,8 @@ def get_coords3(a,shift=[0,0,0]):
     return coords
 
 def get_coords4(a,shift=[0,0,0]):
-    v=sqrt(3.0)/2*a
-    coords=np.zeros((4,3))
+    v = sqrt(3.0)/2*a
+    coords = np.zeros((4,3))
     for i in range(2):
       coords[1+i,0] = -a/2 + i*a
       coords[1+i,1] = v
@@ -61,8 +59,8 @@ def get_coords4(a,shift=[0,0,0]):
     return coords
     
 def get_coords6(a,shift=[0,0,0]):
-    v=sqrt(3.0)/2*a
-    coords=np.zeros((6,3))
+    v = sqrt(3.0)/2*a
+    coords = np.zeros((6,3))
     for i in range(3):
       coords[i,0] = i*a
     for i in range(2):
@@ -75,8 +73,8 @@ def get_coords6(a,shift=[0,0,0]):
     return coords
     
 def get_coords7(a,shift=[0,0,0]):
-    v=sqrt(3.0)/2*a
-    coords=np.zeros((7,3))
+    v = sqrt(3.0)/2*a
+    coords = np.zeros((7,3))
     for i in range(2):
       coords[i,0] = i*a
     for i in range(3):
@@ -90,8 +88,8 @@ def get_coords7(a,shift=[0,0,0]):
     return coords
     
 def get_coords8(a,shift=[0,0,0]):
-    v=sqrt(3.0)/2*a
-    coords=np.zeros((8,3))
+    v = sqrt(3.0)/2*a
+    coords = np.zeros((8,3))
     coords[1,0] = a
     for i in range(3):
       coords[2+i,0] = -a/2 + i*a
@@ -106,8 +104,8 @@ def get_coords8(a,shift=[0,0,0]):
     return coords
     
 def get_coords12(a,shift=[0,0,0]):
-    v=sqrt(3.0)/2*a
-    coords=np.zeros((12,3))
+    v = sqrt(3.0)/2*a
+    coords = np.zeros((12,3))
     for i in range(3):
       coords[i,0] = i*a
     for i in range(4):
@@ -124,8 +122,8 @@ def get_coords12(a,shift=[0,0,0]):
     return coords
     
 def get_coords10(a,shift=[0,0,0]):
-    v=sqrt(3.0)/2*a
-    coords=np.zeros((10,3))
+    v = sqrt(3.0)/2*a
+    coords = np.zeros((10,3))
     for i in range(3):
       coords[i,0] = a*i
     for i in range(4):
@@ -137,137 +135,147 @@ def get_coords10(a,shift=[0,0,0]):
 
     coords += shift
     return coords
+
+def get_coords6_3(a,shift=[0,0,0]):
+    v = sqrt(3.0)/2*a
+    arr,Natoms = get_cluster(cluster)
+    coords = np.zeros((Natoms,3))
+    coords[:6,:] = get_coords6(a,[0,0,0])
+    coords[6:,:] = get_coords3(a,[a/2,v/3,h])
+    coords += repmat(shift,Natoms,1)
+    return coords
+
+def get_coords8_4(a,shift=[0,0,0]):
+    v = sqrt(3.0)/2*a
+    arr,Natoms = get_cluster(cluster)
+    coords = np.zeros((Natoms,3))
+    coords[:8,:] = get_coords8(a)
+    coords[8:,:] = get_coords4(a,[a/2,v/3,h])
+    coords += repmat(shift,Natoms,1)
+    return coords
     
-# ===== Main part
-a=2.775                    # atom distance in Angstroms
-v=sqrt(3.0)/2*a
-h=sqrt(2.0/3.0)*a
-cluster=args.cluster
-if args.shift:
-  shift = args.shift #np.array([float(i) for i in args.shift.split("_")])
-  print "Shift =",shift
-else:
-  shift = [0,0,0]
+def get_coords12_7(a,shift=[0,0,0]):
+    v = sqrt(3.0)/2*a
+    arr,Natoms = get_cluster(cluster)
+    coords = np.zeros((Natoms,3))
+    coords[:arr[0],:] = get_coords12(a)
+    coords[arr[0]:,:] = get_coords7(a,[a/2,v/3,h])
+    coords += repmat(shift,Natoms,1)
+    return coords
 
-if args.dir:
-  dir=args.dir
-  print dir
-else:
-  dir=""
-filename=str(dir+"Pt.xyz")
+def get_coords5_10_5(a,shift=[0,0,0]):
+    v = sqrt(3.0)/2*a
+    arr,Natoms = get_cluster(cluster)
+    L1,L2,L3 = arr
+    coords = np.zeros((Natoms,3))
+    # 1st layer
+    for i in range(3):
+        coords[i,0] = a*i
+        coords[i,1] = 2*v/3
+    for i in range(2):
+        coords[i+3,0] = a/2 + a*i
+        coords[i+3,1] = 5*v/3
+    for i in range(5):
+        coords[i,2] = -h
+    # 2nd layer
+    coords[L1:L1+L2,:] = get_coords10(a)
+    # 3rd layer
+    for i in range(2):
+        coords[L1+L2+i,0] = a/2 + a*i
+        coords[L1+L2+i,1] = v/3
+    for i in range(3):
+        coords[L1+L2+i+2,0] = a*i
+        coords[L1+L2+i+2,1] = 4*v/3
+    for i in range(5):
+        coords[L1+L2+i,2] = h
+    coords += repmat(shift,Natoms,1)
+    return coords
 
-# ===== one layer
-if cluster=="3":
-  coords=get_coords3(a,shift)
+def get_coords9_10_9(a,shift=[0,0,0]):
+    v = sqrt(3.0)/2*a
+    arr,Natoms = get_cluster(cluster)
+    L1,L2,L3 = arr
+    coords = np.zeros((Natoms,3))
+    # 1st layer
+    for i in range(4):
+        coords[i,0] = -a/2 + a*i
+        coords[i,1] = -v/3
+    for i in range(3):
+        coords[i+4,0] = a*i
+        coords[i+4,1] = -v/3 + v
+    for i in range(2):
+        coords[i+7,0] = a/2 + a*i
+        coords[i+7,1] = -v/3 + 2*v
+    for i in range(L1):
+        coords[i,2] = -h
+    # 2nd layer
+    coords[L1:L1+L2,:] = get_coords10(a)
+    # 3rd layer
+    for i in range(2):
+        coords[L1+L2+i,0] = a/2 + a*i
+        coords[L1+L2+i,1] = v/3
+    for i in range(3):
+        coords[L1+L2+i+2,0] = a*i
+        coords[L1+L2+i+2,1] = v/3 + v
+    for i in range(4):
+        coords[L1+L2+i+5,0] = -a/2 + a*i
+        coords[L1+L2+i+5,1] = v/3 + 2*v
+    for i in range(L3):
+        coords[L1+L2+i,2] = h
+    coords += repmat(shift,Natoms,1)
+    return coords
 
-elif cluster=="4":
-  coords=get_coords4(a,shift)
 
-elif cluster=="6":
-  coords=get_coords6(a,shift)
-
-elif cluster=="7":
-  coords=get_coords7(a,shift)
-
-elif cluster=="8":
-  coords=get_coords8(a,shift)
-
-elif cluster=="10":
-  coords=get_coords10(a,shift)
-   
-elif cluster=="12":
-  coords=get_coords12(a,shift)
-
-# ====== two layers
-elif cluster=="6_3":
-  arr,num_atoms=get_cluster(cluster)
-  coords=np.zeros((num_atoms,3))
-  coords[:6,:] = get_coords6(a,[0,0,0])
-  coords[6:,:] = get_coords3(a,[a/2,v/3,h])
-  coords += repmat(shift,num_atoms,1)
-   
-elif cluster=="8_4":
-   arr,num_atoms=get_cluster(cluster)
-   coords=np.zeros((num_atoms,3))
-   coords[:8,:] = get_coords8(a)
-   coords[8:,:] = get_coords4(a,[a/2,v/3,h])
-   coords += repmat(shift,num_atoms,1)
-   
-elif cluster=="12_7":
-   arr,num_atoms = get_cluster(cluster)
-   coords=np.zeros((num_atoms,3))
-   coords[:arr[0],:] = get_coords12(a)
-   coords[arr[0]:,:] = get_coords7(a,[a/2,v/3,h])
-   coords += repmat(shift,num_atoms,1)
-
-# ===== three layers
-elif cluster=="5_10_5":
-   arr,num_atoms = get_cluster(cluster)
-   L1=arr[0]
-   L2=arr[1]
-   L3=arr[2]
-   coords=np.zeros((num_atoms,3))
-   # 1st layer
-   for i in range(3):
-     coords[i,0] = a*i
-     coords[i,1] = 2*v/3
-   for i in range(2):
-     coords[i+3,0] = a/2 + a*i
-     coords[i+3,1] = 5*v/3
-   for i in range(5):
-     coords[i,2] = -h
-   # 2nd layer
-   coords[L1:L1+L2,:] = get_coords10(a)
-   # 3rd layer
-   for i in range(2):
-     coords[L1+L2+i,0] = a/2 + a*i
-     coords[L1+L2+i,1] = v/3
-   for i in range(3):
-     coords[L1+L2+i+2,0] = a*i
-     coords[L1+L2+i+2,1] = 4*v/3
-   for i in range(5):
-     coords[L1+L2+i,2] = h
-   coords += repmat(shift,num_atoms,1)
-     
-elif cluster=="9_10_9":
-   arr,num_atoms = get_cluster(cluster)
-   L1=arr[0]
-   L2=arr[1]
-   L3=arr[2]
-   coords=np.zeros((num_atoms,3))
-   # 1st layer
-   for i in range(4):
-     coords[i,0] = -a/2 + a*i
-     coords[i,1] = -v/3
-   for i in range(3):
-     coords[i+4,0] = a*i
-     coords[i+4,1] = -v/3 + v
-   for i in range(2):
-     coords[i+7,0] = a/2 + a*i
-     coords[i+7,1] = -v/3 + 2*v
-   for i in range(L1):
-     coords[i,2] = -h
-   # 2nd layer
-   coords[L1:L1+L2,:] = get_coords10(a)
-   # 3rd layer
-   for i in range(2):
-     coords[L1+L2+i,0] = a/2 + a*i
-     coords[L1+L2+i,1] = v/3
-   for i in range(3):
-     coords[L1+L2+i+2,0] = a*i
-     coords[L1+L2+i+2,1] = v/3 + v
-   for i in range(4):
-     coords[L1+L2+i+5,0] = -a/2 + a*i
-     coords[L1+L2+i+5,1] = v/3 + 2*v
-   for i in range(L3):
-     coords[L1+L2+i,2] = h
-   coords += repmat(shift,num_atoms,1)
-   
-else:
-  print "Cluster not implemented, please choose a different one."
-  raise SystemExit #raise NotImplementedError
-
-# ===== print to file
-printtofile(coords,filename)
-print "Coords of cluster",args.cluster,"saved in",filename
-
+if __name__ == "__main__":
+    a = 2.775                    # atom distance in Angstroms
+    v = sqrt(3.0)/2*a
+    h = sqrt(2.0/3.0)*a
+    cluster = args["<c>"]
+    if args["-s"]:
+        shift = np.array(args["<s>"]).astype(float)
+        print "Shift =",shift
+    else:
+        shift = np.zeros(3)
+    
+    if args["-d"]:
+        dir = args["<d>"] + "/"
+        print dir
+    else:
+        dir = ""
+    filename = str(dir+"Pt.xyz")
+    
+    # one layer
+    if cluster=="3":    coords = get_coords3(a,shift)
+    
+    elif cluster=="4":  coords = get_coords4(a,shift)
+    
+    elif cluster=="6":  coords = get_coords6(a,shift)
+    
+    elif cluster=="7":  coords = get_coords7(a,shift)
+    
+    elif cluster=="8":  coords = get_coords8(a,shift)
+    
+    elif cluster=="10": coords = get_coords10(a,shift)
+       
+    elif cluster=="12": coords = get_coords12(a,shift)
+    
+    # two layers
+    elif cluster=="6_3":  coords = get_coords6_3(a,shift)
+       
+    elif cluster=="8_4":  coords = get_coords8_4(a,shift)
+       
+    elif cluster=="12_7": coords = get_coords12_7(a,shift)
+    
+    # three layers
+    elif cluster=="5_10_5": coords = get_coords5_10_5(a,shift)
+         
+    elif cluster=="9_10_9": coords = get_coords9_10_9(a,shift)
+       
+    else:
+        print "Cluster not implemented, please choose a different one."
+        raise SystemExit
+    
+    # save to file
+    savedata(coords,filename)
+    print "Coords of cluster",cluster,"saved in",filename
+    
