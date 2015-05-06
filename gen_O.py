@@ -1,32 +1,34 @@
-#!/usr/bin/python
-# =====
-# script to generate oxygen coordinate
-# 20/02/15
-# =====
-import sys
+#!/usr/bin/env python
+"""
+Usage: gen_O.py [-h] [-s <s> <s> <s>]
+Generate oxygen coordinate
+
+-h --help              Show this message and exit
+-s s s s --shift s s s Shift coordinates by [x,y,z]
+
+20/02/15
+"""
+from docopt import docopt
 import numpy as np
 import numpy.matlib
-from math import pi, sqrt, sin, cos, radians
+from math import *
 
-def savecoords(coords,filename):
-		f=open(filename,"w")
-		s = str("O\t")
-		for j in range(3):
-			s += "%.5f" % coords[0,j] + "\t"
-		f.write(s+"\n")
-		f.close()
-		print "Coords saved in",filename
+def savedata(coords, filename):
+    f=open(filename,"w")
+    s = str("O\t")
+    for j in range(3):
+        s += "%.6f" % coords[j] + "\t"
+    f.write(s+"\n")
+    f.close()
+    print "Oxygen coords saved in",filename
 
 # ===== get input
-dist=np.zeros((1,3))
-
-if len(sys.argv)<4:
-	print "You did not specify enough shift components, use default vector: [0,0,1] A."
-	dist = np.array([[0,0,1]])
+args = docopt(__doc__)
+if args["-s"]:
+    coords = np.array(args["<s>"]).astype(float)
 else:
-	for i in range(3):
-		dist[0,i] = float(sys.argv[i+1])
+    print "Default shift vector: [0,0,1] A."
+    coords = np.array([0,0,1])
 
-# ===== print into file
-filename="O.xyz"
-savecoords(dist,filename)
+filename = "O.xyz"
+savedata(coords, filename)
