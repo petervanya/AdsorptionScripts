@@ -9,3 +9,4 @@ cottrell.sh.o*
 cottrell.sh.po*
 cluster_list
 OLD/
+Tests/
