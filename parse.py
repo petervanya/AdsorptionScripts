@@ -16,25 +16,7 @@ pv278@cam.ac.uk, 28/04/15
 """
 from docopt import docopt
 import numpy as np
-from iolib import save_table
-
-def print_table(A,header):
-    if header:
-        print header
-    M,N = A.shape
-    for i in range(M):
-        line=""
-        for j in range(N):
-            line += str(A[i][j]) + "\t"
-        print line
-
-def get_path(Pt_dir,spin,eta=0):
-    """get full file path with eta and spin"""
-    if eta != 0:
-        path = Pt_dir + "Water" + "/Pt" + str(cluster) + "/Eta_" + str(eta) + "/S_" + str(spin) + "/Pt.out"
-    else:
-        path = Pt_dir + "Plain" + "/Pt" + str(cluster) + "/S_" + str(spin) + "/Pt.out"
-    return path
+from iolib import save_table, print_table, get_path
 
 def get_table_plain(Pt_dir,spin_list):
     """get table of all data for all spins"""
@@ -46,7 +28,7 @@ def get_table_plain(Pt_dir,spin_list):
     runtime  = []
 
     for i in spin_list:
-        outfile = open(get_path(Pt_dir,i)).readlines()
+        outfile = open(get_path(Pt_dir, cluster, i)).readlines()
         
         conv.append("Yes" if "Normal" in outfile[-1] else "No")
     
@@ -62,14 +44,7 @@ def get_table_plain(Pt_dir,spin_list):
         temp = [l for l in outfile if " Job cpu" in l][-1].split()
         runtime.append(temp[3]+":"+temp[5]+":"+temp[7]+":"+temp[9])
 
-    conv      = np.array([conv]).T
-    spins     = np.array([spins]).T
-    E         = np.array([E]).T
-    Ncycles   = np.array([Ncycles]).T
-    err       = np.array([err]).T
-    runtime   = np.array([runtime]).T
-    
-    A = np.concatenate((spins,conv,E,Ncycles,err,runtime),1)
+    A = np.vstack((spins,conv,E,Ncycles,err,runtime)).T
     return A
 
 def get_table_water(Pt_dir,spin_list):
@@ -85,7 +60,7 @@ def get_table_water(Pt_dir,spin_list):
     
     for j in range(1,4):
         for i in spin_list:
-            outfile = open(get_path(Pt_dir,i,j)).readlines()
+            outfile = open(get_path(Pt_dir, cluster, i, j)).readlines()
         
             temp = [l for l in outfile if "Charge" in l][0].split()[-1][-2:]
             spins.append( (int(temp)-1)/2 )
@@ -118,17 +93,8 @@ def get_table_water(Pt_dir,spin_list):
             temp = [l for l in outfile if "termination" in l][-1].split()
             datetime.append(temp[-4]+" "+temp[-3]+" "+temp[-1]+" "+temp[-2])
     
-    etas      = np.array([[1]*11 + [2]*11 + [3]*11]).T
-    spins     = np.array([spins]).T
-    succ      = np.array([succ]).T
-    reason    = np.array([reason]).T
-    steps     = np.array([steps]).T
-    maxsteps  = np.array([maxsteps]).T
-    E         = np.array([E]).T
-    runtime   = np.array([runtime]).T
-    datetime  = np.array([datetime]).T
- 
-    A = np.concatenate((etas,spins,succ,reason,steps,maxsteps,E,runtime,datetime),1)
+    etas      = np.array([[1]*11 + [2]*11 + [3]*11])
+    A = np.vstack((etas,spins,succ,reason,steps,maxsteps,E,runtime,datetime)).T
     return A
 
 if __name__ == "__main__":
