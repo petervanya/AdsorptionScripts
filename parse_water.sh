@@ -76,9 +76,9 @@ for j in {1..3}; do
     steps=`cat Pt.out | grep "^ Step number" | tail -1 | awk '{print $3}'`
     maxsteps=`cat Pt.out | grep "^ Step number" | tail -1 | awk '{print $NF}'`
     runtime=`cat Pt.out | grep "^ Job cpu" | awk '{print $4":"$6":"$8":"$10}'`
-    date=`cat Pt.out | grep " termination " | tail -1 | awk '{print $(NF-3),$(NF-2),$NF}'`
+    datetime=`cat Pt.out | grep " termination " | tail -1 | awk '{print $(NF-3),$(NF-2),$NF,$(NF-1)}'`
     
-    echo -e $j "\t" $spin "\t" $succ "\t" $reason "\t" $steps "\t" $maxsteps "\t" $E "\t" $runtime "\t" $date
+    echo -e $j "\t" $spin "\t" $succ "\t" $reason "\t" $steps "\t" $maxsteps "\t" $E "\t" $runtime "\t" $datetime
     cd ../..
   done
 done

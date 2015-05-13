@@ -7,7 +7,8 @@ usage() {
 
   Arguments:
   -h  show this message
-  -c  Pt cluster, e.g. 9_10_9"
+  -c  Pt cluster, e.g. 9_10_9
+  -d  Directory containing Pt*"
   exit 0
 }
 
@@ -17,10 +18,12 @@ if [ $# -lt 1 ] ; then
   exit 1
 fi
 
-while getopts ":hm:c:" opt; do
+while getopts ":hm:c:d:" opt; do
   case $opt in
    h) usage ;;
    c) cluster=$OPTARG ;;
+   d) dir=$OPTARG
+      echo $dir ;;
    :) echo "Missing argument -$OPTARG" >&2
       exit 1 ;;
   \?) echo "Invalid option: -$OPTARG" >&2
@@ -29,25 +32,25 @@ while getopts ":hm:c:" opt; do
 done
 shift $((OPTIND - 1))
 
-dir=~/Platinum/Plain
+if [ -z $dir ]; then
+  dir=~/Platinum/Plain
+fi
 cluster=Pt$cluster
 cd $dir/$cluster
 
-echo -e "# Spin | Conv? | Energy | Cycles | Error | Runtime d:h:m:s"
+echo -e "Spin \t Conv? \t Energy \t Cycles \t Error \t Runtime d:h:m:s"
 
 for i in {0..10}; do
   if [ `tail -n 1 S_$i/Pt.out | awk '{print $1}'` == "Normal" ]
     then conv="Yes"
     else conv="No"
   fi
+  spin=`grep "^ Charge" S_$i/Pt.out | head -n 1 | awk '{print substr($NF,length($NF)-1,length($NF))}'`
+  spin=`echo "($spin-1)/2" | bc`
   E_cycles=`cat S_$i/Pt.out | grep "cycles$" | awk '{print $5 "\t" $(NF-1)}'`
   err=`cat S_$i/Pt.out | grep "Conv=" | awk '{print substr($(NF-2),6,8)}'`
-  #
-  # printing time in minutes: $4=days, $6=hours, $8=minutes, $10=seconds
-  #runtime=`cat S_$i/$cluster.out | grep "^ Job cpu" | awk '{printf "%.1f", ($4*24*60*60 + $6*60*60 + $8*60 + $10)/60}'`
-  #
   runtime=`cat S_$i/Pt.out | grep "^ Job cpu" | awk '{print $4":"$6":"$8":"$10}'`
 
-  echo -e $i "\t" $conv "\t" $E_cycles "\t" $err "\t" $runtime
+  echo -e $spin "\t" $conv "\t" $E_cycles "\t" $err "\t" $runtime
 done
 
