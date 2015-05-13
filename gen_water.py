@@ -16,21 +16,9 @@ pv278@cam.ac.uk, 20/02/15
 """
 import numpy as np
 from numpy.matlib import repmat
-#import argparse
 from docopt import docopt
 from math import *
-
-def savedata(coords,atom_names,filename):
-    f = open(filename,"w")
-    M,N = coords.shape
-    for i in range(M):
-        line = str(atom_names[i]) + "\t"
-        for j in range(N):
-            line += "%.6f" % coords[i,j] + "\t"
-        line += "\n"
-        f.write(line)
-    f.close()
-    print "Water coords printed into file",filename
+from iolib import save_xyz
 
 def init_water():
     """Initialise water molecule"""
@@ -42,11 +30,12 @@ def init_water():
     coords[1:3,2] += l_OH*cos(alpha/2)
     return coords
 
-def translation(coords,shift):
+def shift(coords, s):
     """shift H2O atoms"""
-    return coords + repmat(shift,3,1)
+    print "Shift by",s
+    return coords + repmat(s,3,1)
 
-def walk_Pt(coords,shift):
+def shift_Pt(coords, vectPt):
     """shift H2O atoms in Pt lattice vectors"""
     aPt = 2.775
     vPt = aPt*sqrt(3.0)/2
@@ -54,7 +43,9 @@ def walk_Pt(coords,shift):
     basis = np.array([[aPt, aPt/2,  aPt/2],
                       [0.0, vPt,    vPt/3],
                       [0.0, 0.0,    hPt  ]])
-    return coords + np.dot(basis,shift)
+    s = np.dot(basis,vectPt)
+    print "Position on Pt lattice:",s
+    return coords + s
 
 def rotate_theta(coords,theta):
     Rtheta = np.array([[cos(theta),0,-sin(theta)],
@@ -91,15 +82,13 @@ if __name__ == "__main__":
         print "Rotated by theta =",degrees(theta)
 
     if args["--posPt"]:
-        vectPt = np.array(args["--posPt"].split()).astype(float)
-        coords = walk_Pt(coords, vectPt)
+        vecPt = np.array(args["--posPt"].split()).astype(float)
+        coords = shift_Pt(coords, vecPt)
 
     if args["--shift"]:
-        shift = np.array(args["--shift"].split()).astype(float)
-        coords = translation(coords, shift)
-#    print "Total Pt shift:",dist
+        s = np.array(args["--shift"].split()).astype(float)
+        coords = shift(coords, s)
     
     filename = "water.xyz"
     names = ["O","H","H"]
-    savedata(coords,names,filename)
-    
+    save_xyz(coords, names, filename)
