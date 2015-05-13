@@ -24,23 +24,23 @@ for i in {0..10}; do
   dir=$base_dir/Pt$cluster/S_$i
   >$dir/evals.out
   >$dir/evals_occ.out
-  a=`cat $dir/Pt.out | grep "Eigenvalues" | awk '{for(i=5; i<=NF; i++) print $i}'`
+  a=`cat $dir/Pt.out | grep "eigenvalues" | awk '{for(i=5; i<=NF; i++) print $i}'`
   b=`cat $dir/Pt.out | grep "occ" | awk '{for(i=5; i<=NF; i++) print $i}'`
   
   if [ -n "$a" ]; then      # if string length is non-zero
-  	echo "$a" >>$dir/evals.out
-  	echo "$b" >>$dir/evals_occ.out
+    echo "$a" >>$dir/evals.out
+    echo "$b" >>$dir/evals_occ.out
     # if S=0, states are degenerate and must double evals
     if [ $i -eq "0" ]; then          
       echo "$a" >>$dir/evals.out
       echo "$b" >>$dir/evals_occ.out
     fi
     num_a=`cat $dir/evals.out | wc -l`
-		num_b=`cat $dir/evals_occ.out | wc -l`
-  	echo "$num_a eigenvalues produced for Pt$cluster, spin $i."
-  	echo "$num_b occupied eigenvalues produced for Pt$cluster, spin $i."
+    num_b=`cat $dir/evals_occ.out | wc -l`
+    echo "$num_a: e-vals for Pt$cluster, S=$i."
+    echo "$num_b: occ e-vals for Pt$cluster, S=$i."
   else
-  	echo "No eigenvalues in the output file."
+    echo "No eigenvalues in the output file."
   fi
 done
 
