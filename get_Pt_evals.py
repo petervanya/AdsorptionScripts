@@ -1,12 +1,14 @@
 #!/usr/bin/env python
-"""
-get_Pt_evals
+"""Usage:
+    get_Pt_evals.py <cluster> [-d <d>] [--bandgap]
 
-Usage: get_Pt_evals.py -c <c> [-d <d>] [-h]
+Arguments:
+    <cluster>         Pt cluster, e.g. 9_10_9
 
--h --help        Show this screen
--c c --cluster c Platinum cluster, e.g. 9_10_9
--d d --dir -d    Directory of evals file (default: ~/Platinum/Plain)
+Options:
+    -h,--help         Show this message and exit
+    -d <d>,--dir <d>  Directory of evals file [default: /home/pv278/Platinum/]
+    --bandgap         Print band gap for a specific cluster for all spins
 
 pv278@cam.ac.uk, 01/05/15
 """
@@ -14,65 +16,75 @@ from docopt import docopt
 import numpy as np
 import os
 import itertools
+from iolib import *
 
-def savedata(A,outfile):
-    np.savetxt(outfile,A,"%.5f","\t")
-    print "E-values printed in",outfile
+def get_evals(cluster, Pt_dir, spin_list):
+    Nall = 44*sum([int(i) for i in cluster.split("_")])
+    Nocc = 18*sum([int(i) for i in cluster.split("_")])
+    Nvirt = Nall - Nocc
+    mat_all  = np.zeros((Nall, len(spin_list)) )
+    mat_occ  = np.zeros((Nocc, len(spin_list)) )
+    mat_virt = np.zeros((Nvirt,len(spin_list)) )
 
-# ===== read cmd ln args
-args = docopt(__doc__)
-#print args
-
-home_dir = "/home/pv278/Platinum/"
-cluster = args["<c>"]
-if args["<d>"]:
-    base_dir = home_dir + args["<d>"]
-else:
-    base_dir = home_dir + "Plain/"
-
-# ===== check if necessary directories exist
-outdir = "Outfiles/Evals"
-if not os.path.exists(base_dir + outdir):
-    os.makedirs(base_dir + outdir)
-    print outdir,"created"
-
-spin_list = range(11)
-Nall = 44*sum([int(i) for i in cluster.split("_")])
-Nocc = 18*sum([int(i) for i in cluster.split("_")])
-Nvirt = Nall - Nocc
-mat_all = np.zeros((Nall,len(spin_list)))
-mat_occ = np.zeros((Nocc,len(spin_list)))
-
-for i in spin_list:
-    fname = base_dir+"Pt"+cluster+"/S_"+str(i)+"/Pt.out"
-    gfile = open(fname).readlines()
- 
-    all = [line.split()[2:] for line in [l for l in gfile if "Eigenvalues" in l]]
-    e_all = [float(eval) for eval in list(itertools.chain(*all))]
- 
-    occ = [line.split()[4:] for line in [l for l in gfile if "occ." in l]]
-    e_occ = [float(eval) for eval in list(itertools.chain(*occ))]
+    for i in spin_list:
+        outfile = open(get_path(Pt_dir, cluster, i)).readlines()
+     
+        all = [line.split()[2:] for line in [l for l in outfile if "Eigenvalues" in l]]
+        e_all = [float(eval) for eval in list(itertools.chain(*all))]
+     
+        occ = [line.split()[4:] for line in [l for l in outfile if "occ." in l]]
+        e_occ = [float(eval) for eval in list(itertools.chain(*occ))]
+        
+        virt = [line.split()[4:] for line in [l for l in outfile if "virt." in l]]
+        e_virt = [float(eval) for eval in list(itertools.chain(*virt))]
+     
+        if i == 0:              # double num. of e-values due to degeneracy
+            e_all += e_all
+            e_occ += e_occ
+            e_virt += e_virt
+        
+        print "S =",i,"\t",len(e_all),"\t",len(e_occ),"\t",len(e_virt)
     
-    virt = [line.split()[4:] for line in [l for l in gfile if "virt." in l]]
-    e_virt = [float(eval) for eval in list(itertools.chain(*virt))]
- 
-    if i == 0:              # double the e-values due to degeneracy
-        e_all += e_all
-        e_occ += e_occ
-        e_virt += e_virt
+        if len(e_all) == 0:     # if the run fails to converge
+            e_all = [10]*Nall
+            e_occ = [10]*Nocc
+            e_virt = [10]*(Nall-Nocc)
     
-    print "S =",i,"\t",len(e_all),"\t",len(e_occ),"\t",len(e_virt)
+        mat_all[:,i] = e_all
+        mat_occ[:,i] = e_occ
+        mat_virt[:,i] = e_virt
+     
+    return mat_all, mat_occ, mat_virt
 
-    if len(e_all) == 0:     # if the run fails to converge
-        e_all = [10]*Nall
-        e_occ = [10]*Nocc
-        e_virt = [10]*(Nall-Nocc)
 
-    mat_all[:,i] = e_all
-    mat_occ[:,i] = e_occ
+if __name__ == "__main__":
+    args = docopt(__doc__,version=1.0)
+#    print args
+    
+    Pt_dir = "/home/pv278/Platinum/"
+    cluster = args["<cluster>"]
+    if args["--dir"]:
+        base_dir = Pt_dir + args["--dir"]
+    else:
+        base_dir = Pt_dir + "Plain/"
+    
+    outdir = base_dir + "Outfiles/Evals"
+    if not os.path.exists(outdir):
+        os.makedirs(outdir)
+        print outdir,"created"
+    
+    spin_list = range(11)
+    A_all, A_occ, A_virt = get_evals(cluster, Pt_dir, spin_list)
+    
+    outfile_all = outdir + "/evals_Pt" + cluster + ".out"
+    outfile_occ = outdir + "/evals_Pt" + cluster + "_occ.out"
+    outfile_virt = outdir + "/evals_pt" + cluster + "_virt.out"
+    save_table(A_all, outfile_all)
+    save_table(A_occ, outfile_occ)
+    save_table(A_virt, outfile_virt)
 
-outfile_all = base_dir+outdir+"/evals_Pt"+cluster+".out"
-outfile_occ = base_dir+outdir+"/evals_Pt"+cluster+"_occ.out"
-savedata(mat_all,outfile_all)
-savedata(mat_occ,outfile_occ)
+    if args["--bandgap"]:
+        A = get_all_bandgaps(cluster, spin_list)
+        print_table(A)
+        save_table(A,outdir + "/Pt" + cluster + "_bandgap.out")
 
