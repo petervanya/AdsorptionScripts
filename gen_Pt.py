@@ -19,20 +19,8 @@ from docopt import docopt
 import numpy as np
 from numpy.matlib import repmat
 from math import sqrt
+from iolib import save_xyz
 
-args = docopt(__doc__)
-print args
-
-def savedata(coords,atom_names,filename):
-    f = open(filename,"w")
-    M,N = coords.shape
-    for i in range(M):
-        line = str(atom_names[i])+"\t"
-        for j in range(N):
-            line += "%.6f" % coords[i,j] + "\t"
-        f.write(line)
-    f.close()
-    
 def get_cluster(cluster):
     """get the cluster type from string input"""
     arr = [int(i) for i in cluster.split("_")]
@@ -232,6 +220,10 @@ if __name__ == "__main__":
     a = 2.775                    # atom distance in Angstroms
     v = sqrt(3.0)/2*a
     h = sqrt(2.0/3.0)*a
+
+    args = docopt(__doc__,version=2.0)
+#    print args
+    
     cluster = args["<cluster>"]
     if args["--shift"]:
         shift = np.array(args["--shift"].split()).astype(float)
@@ -277,6 +269,5 @@ if __name__ == "__main__":
     
     # save to file
     names = ["Pt"]*len(coords)
-    savedata(coords,names,filename)
-    print "Coords of cluster",cluster,"saved in",filename
+    save_xyz(coords, names, filename)
     
