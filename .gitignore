@@ -3,6 +3,7 @@
 *.gjf
 *.out
 *~
+*.pyc
 cluster_run.sh.o*
 cluster_run.sh.po*
 cottrell.sh.o*
