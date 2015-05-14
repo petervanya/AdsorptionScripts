@@ -1,113 +1,114 @@
-#!/usr/bin/python
+#!/usr/bin/env python
+"""Usage:
+    process.py <file> [-c <c>] [-a <a>] [-r <r>] [-s <s>] [-f <f>]
+                      [--print | --save <out>]
+
+Centre, shift, align or rotate a molecule.
+
+Arguments:
+    <file>                Input file
+
+Options:
+    -c <c>,--centre <c>   Atom number (1-N) to centre the molecule around.
+    -a <a>,--align <a>    Align s.t. given two atoms "n1 n2" lie on x-axis
+    -r <r>,--rotate <r>   Rotate by angles theta and phi
+    -s <s>,--shift <s>    Final shift of all atoms by a "x y z"
+    -f <f>,--flip <f>     Flip atoms "n1 n2" by rotating whole molecule
+    --print               Print final coords on screen
+    --save <out>          Save final coords into <out>  
+
+pv278@cam.ac.uk 16/04/15
 """
-Script to rotate a molecule
-16/04/15
-"""
-import sys
-import argparse
+from docopt import docopt
 import numpy as np
 from numpy.linalg import norm
 from numpy.matlib import repmat
 from scipy.linalg import expm
 from math import *
+from iolib import save_xyz, read_xyz, print_xyz, rotate_theta, rotate_phi, shift
 
-help_text="Script to centre, shift, align or rotate a molecule by a given angle."
-parser = argparse.ArgumentParser(description=help_text)
+def rotate(A, omega, alpha):
+    """rotate coordinates A around vector omega by angle alpha"""
+    R = np.matrix([[0,        -omega[2], omega[1]],
+                   [ omega[2], 0,       -omega[0]],
+                   [-omega[1], omega[0], 0       ]])
+    R *= alpha
+  
+    for i in range(N):
+        A[i,:] = np.dot(A[i,:], expm(R))
+    return A
 
-parser.add_argument("-f","--file",dest="file",action="store",type=str,required=True,
-                    help="Input file name",metavar="fname")
+def flip(A, n1, n2):
+    """flip atoms at positions n1, n2 by rotating"""
+    centre = A[n1-1,:]
+    dist = A[n2-1,:] - A[n1-1,:]
+    A = shift(A, -(centre + dist/2))
+    omega = np.array([0, dist[2], -dist[1]])
+    A = rotate(A, omega, pi)
+    A = shift(A, centre + dist/2)
+    return A
 
-parser.add_argument("-c","--centre",dest="centre",action="store",type=int,
-                    help="Atom number to center the molecule around",metavar="n")
+def align(A, n1, n2):
+    """align the coords so that atoms n1, n2 lie on x-axis"""
+    if (n1 not in range(1,N+1)) or (n2 not in range(1,N+1)):
+        raise ValueError
+    vec12 = A[n1-1,:] - A[n2-1,:]
+    axis = np.array([1,0,0])
+    alpha = acos( np.dot(vec12,axis)/norm(vec12) )
+    omega = np.cross(vec12, axis)
+    if norm(omega) < 1e-12:
+        print "Atoms",n1,"and",n2,"already aligned"
+        return A
 
-parser.add_argument("-a","--align",dest="align",action="store",type=str,
-                    help="Align s.t. two atoms n,m lie on x-axis",metavar="m_n")
-                    
-parser.add_argument("-r","--rotate",dest="rotate",action="store",type=str,
-                    help="Rotate by angles theta and phi",metavar="t_p")
-                    
-parser.add_argument("-s","--shift",dest="shift",action="store",type=str,
-                    help="Final shift of all atoms by a vector",metavar="a_b_c")
-                    
-args = parser.parse_args()
+    omega /= norm(omega)
+    R = np.matrix([[0,        -omega[2], omega[1]],
+                   [ omega[2], 0,       -omega[0]],
+                   [-omega[1], omega[0], 0       ]])
+    R *= -alpha
+  
+    for i in range(N):
+        A[i,:] = np.dot(A[i,:],expm(R))
+    print "Atoms",n1,"and",n2,"aligned on x-axis"
+    return A
+    
 
-# ====== read the file
-f=open(args.file)
-A=f.read().split("\n")
-B=[line.split("\t") for line in A]
-B.pop(-1)
-B=np.array(B)
-C = B[:,1:4].astype(np.float)
-N=C.shape[0]
+if __name__ == "__main__":
+    args = docopt(__doc__,version=1.0)
+    print args
+    filename = args["<file>"]
+    
+    names, A = read_xyz(filename)
+    N = len(A)
 
-#vec1=C[0,:]  # carbon
-#vec2=C[4,:]  # sulfur
-#dist12 = norm(vec1-vec2)
+    if args["--centre"]:
+         n = int(args["--centre"])
+         A = shift(A, -A[n-1,:])
+   
+    if args["--align"]:
+        n1, n2 = [int(i) for i in args["--align"].split()]
+        if n1 != n2:
+            A = align(A, n1, n2)
 
-# ===== shift
-if(args.centre):
-  n = int(args.centre)
-  if n not in range(1,N+1):
-    raise ValueError
-  else:
-    shift_vec = C[n-1,:]
-    C -= repmat(shift_vec,N,1)
-    print "Molecule centred around atom",n
-
-# ===== align atoms n1 and n2 to -- SO(3) rotation
-if(args.align):
-  n1,n2 = [int(i) for i in args.align.split("_")]
-  if (n1 not in range(1,N+1)) or (n2 not in range(1,N+1)):
-    raise ValueError
-  vec12 = C[n1-1,:] - C[n2-1,:]
-  axis = np.array([1,0,0])
-  alpha = acos( np.dot(vec12,axis)/norm(vec12) )
-  omega = np.cross(vec12,axis)
-  omega /= norm(omega)
-  R = np.matrix([[0,        -omega[2], omega[1]],
-                 [ omega[2], 0,       -omega[0]],
-                 [-omega[1], omega[0], 0       ]])
-  R *= -alpha
-
-  for i in range(N):
-    C[i,:] = np.dot(C[i,:],expm(R))
-  print "Atoms",n1,"and",n2,"aligned on x-axis"
-
-# ===== rotate by given theta and phi
-if(args.rotate):
-  theta,phi = [radians(float(i)) for i in args.rotate.split("_")]
-  Rphi = np.array([[cos(phi),-sin(phi),0],
-                   [sin(phi), cos(phi),0],
-                   [0,        0,       1]])
-  #print Rphi
-  Rtheta = np.array([[cos(theta),0,-sin(theta)],
-                     [0,         1, 0         ],
-                     [sin(theta),0, cos(theta)]])
-  #print Rtheta
-
-  for i in range(N):                        # rotation in phi
-    C[i,:] = np.dot(Rphi,C[i,:])
-  print "Rotated by phi =",degrees(phi)
-
-  for i in range(N):                        # rotation in theta
-    C[i,:] = np.dot(Rtheta,C[i,:])
-  print "Rotated by theta =",degrees(theta)
-
-# ===== final shift
-if(args.shift):
-  S = repmat([float(i) for i in args.shift.split("_")],N,1)
-  C += S
-
-B[:,1:4] = C
-
-# ===== print into file
-fname="out.xyz"
-f=open(fname,"w")
-for i in range(N):
-  str=B[i,0] + "\t%.6f"%C[i,0] + "\t%.6f"%C[i,1] + "\t%.6f"%C[i,2] + "\n"
-  f.write(str)
-print "Molecule printed into",fname
-f.close()
-
-
+    if args["--flip"]:
+        n1, n2 = [int(i) for i in args["--flip"].split()]
+        if n1 != n2:
+            A = flip(A, n1, n2)
+    
+    if args["--rotate"]:
+        theta, phi = [radians(float(i)) for i in args["--rotate"].split()]
+        A = rotate_phi(A, phi)
+        print "Rotated by phi =",degrees(phi)
+        A = rotate_theta(A, theta)
+        print "Rotated by theta =",degrees(theta)
+    
+    if args["--shift"]:
+      s = [float(i) for i in args["--shift"].split()]
+      A = shift(A, s)
+    
+    if args["--print"]:
+        print_xyz(A, names)
+    if args["--save"]:
+        fname = args["--save"]
+        save_xyz(A, names, fname)
+   
 
