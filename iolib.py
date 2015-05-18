@@ -7,6 +7,8 @@ Collection of often used functions for
 pv278@cam.ac.uk, 11/05/15
 """
 import numpy as np
+from numpy.matlib import repmat
+from math import *
 
 def save_xyz(coords,atom_names,filename):
     """save xyz coords into file"""
@@ -21,6 +23,20 @@ def save_xyz(coords,atom_names,filename):
     f.close()
     print "Coords saved to",filename
 
+def print_xyz(coords, atom_names):
+    M,N = coords.shape
+    for i in range(M):
+        line = atom_names[i] + "\t"
+        for j in range(N):
+            line += "%.6f" % coords[i,j] + "\t"
+        print line
+
+def read_xyz(filepath):
+    f = open(filepath,"r").readlines()
+    A = np.array([line.split() for line in f])
+    names = A[:,0]
+    data = A[:,1:].astype(float)
+    return names, data
 
 def save_table(A, filepath, header=False):
     """save table A into file"""
@@ -44,20 +60,30 @@ def print_table(A,header=""):
     for i in range(M):
         line=""
         for j in range(N):
-            line += str(A[i][j]) + "\t"
+            line += str(A[i,j]) + "\t"
         print line
 
-def get_path(Pt_dir, cluster, spin, eta=0):
+def read_table(filepath):
+    """read summary tables
+       TODO: rewrite in pandas DataFrame"""
+    f = open(filepath,"r").readlines()
+    A = np.array([line.rstrip("\n").split("\t") for line in f])
+    return A
+
+def get_path(Pt_dir, cluster, spin, eta=0, ext=""):
     """get full file path with eta and spin"""
     if eta != 0:
-        path = Pt_dir + "Water" + "/Pt" + str(cluster) + "/Eta_" + str(eta) + "/S_" + str(spin) + "/Pt.out"
+        path = Pt_dir + "Water" + "/Pt" + cluster + "/Eta_" + str(eta) + "/S_" + str(spin) + "/Pt.out"
     else:
-        path = Pt_dir + "Plain" + "/Pt" + str(cluster) + "/S_" + str(spin) + "/Pt.out"
+        path = Pt_dir + "Plain" + "/Pt" + cluster + "/S_" + str(spin) + "/Pt.out"
+    if ext:
+        path += "." + ext
     return path
 
 def shift(coords,s):
     """shift coordinates by a given vector s"""
-    return coords + repmat(s,3,1)
+    N = len(coords)
+    return coords + repmat(s,N,1)
 
 def rotate_theta(coords,theta):
     """rotate atoms by an angle theta (in radians)"""
