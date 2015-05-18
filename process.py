@@ -74,7 +74,7 @@ def align(A, n1, n2):
 
 if __name__ == "__main__":
     args = docopt(__doc__,version=1.0)
-    print args
+#    print args
     filename = args["<file>"]
     
     names, A = read_xyz(filename)
