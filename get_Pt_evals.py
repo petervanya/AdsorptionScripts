@@ -7,7 +7,7 @@ Arguments:
 
 Options:
     -h,--help         Show this message and exit
-    -d <d>,--dir <d>  Directory of evals file [default: /home/pv278/Platinum/]
+    -d <d>,--dir <d>  Directory of evals file
     --bandgap         Print band gap for a specific cluster for all spins
 
 pv278@cam.ac.uk, 01/05/15
