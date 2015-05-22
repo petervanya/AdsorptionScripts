@@ -58,11 +58,11 @@ def get_evals(cluster, Pt_dir, spin_list):
 
 
 if __name__ == "__main__":
-    args = docopt(__doc__,version=1.0)
+    args = docopt(__doc__, version=1.0)
 #    print args
     
-    Pt_dir = "/home/pv278/Platinum/"
     cluster = args["<cluster>"]
+    Pt_dir = "/home/pv278/Platinum/"
     if args["--dir"]:
         base_dir = Pt_dir + args["--dir"]
     else:
