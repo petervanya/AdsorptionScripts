@@ -4,7 +4,7 @@ Analyse the surface tensions of various
 spin configurations of Pt clusters w or w/o water
 
 Usage:
-    get_surf_tension.py <cluster> -e <e> [-d <d>] (--print | --save)
+    get_surf_tension.py <cluster> -e <e> [-d <d>] (--print | --save [--latex])
                         [--ext <ext>]
 
 Arguments:
@@ -15,12 +15,14 @@ Options:
     --print            Print table on screen
     --save             Save table in ~/Platinum/Water/Outfiles
     --ext <ext>        File extension, e.g. "nosymm"
+    --latex            Add latex formatting for output
 
 pv278@cam.ac.uk, 07/04/15
 """
-from docopt import docopt
 import numpy as np
 from math import sqrt
+import pandas as pd
+from docopt import docopt
 from iolib import read_table, print_table, save_table
 
 def isfloat(value):
@@ -31,13 +33,6 @@ def isfloat(value):
     except ValueError:
         return False
 
-#def print_table(res):
-#    header = "Spin \t Energy (eV) \t Surf. tension (J/m**2)"
-#    print header
-#    print "-"*len(header)
-#    N = len(res)
-#    for i in range(N):
-#        print res[i][0],'\t {0:.5f} \t {1:.5f}'.format(res[i][1],res[i][2])
     
 def parse_data(file):
     data = []
@@ -47,46 +42,53 @@ def parse_data(file):
     f.close()
     return data
 
+
 if __name__ == "__main__":
     args = docopt(__doc__,version=1.0)
 #    print args
 
     cluster = args["<cluster>"]
     eta = int(args["--eta"])
-    Pt_dir = "/home/pv278/Platinum"
-    outdir = Pt_dir + "/Water/Outfiles"
+    ext = args["--ext"]
 
-    Ewater = -76.393551           # ZP corrected B3LYP/LANL2DZ
+    home_dir = "/home/pv278"
+    indir_p = home_dir + "/Platinum/Plain/Outfiles"
+    indir_w = home_dir + "/Platinum/Water/Outfiles"
+    fin = "Pt" + cluster + "_summary.out"
+    inpath_p = indir_p + "/" + fin
+    inpath_w = indir_w + "/" + fin
+
+    Ewater = -76.393551              # ZP corrected B3LYP/LANL2DZ
     a = 2.775
-    S = a**2*sqrt(3.0)/2.0*1e-20  # in m**2
+    S = a**2*sqrt(3.0)/2.0*1e-20     # in m**2
     Nspins = 11
-    spins = range(Nspins)
+    spin_list = range(Nspins)
     
-    path = Pt_dir + "/Plain/Outfiles" + "/Pt" + cluster + "_summary.out"
-    Aplain = read_table(path)
-    path = outdir + "/Pt" + cluster + "_summary.out"
-    if args["--ext"]:
-        ext = args["--ext"]
+#    names = ["spin", "converged", "E", "cycles", "error", "time"]
+    Ap = pd.read_table(inpath_p, header=None, index_col=False)
+    if ext:
         path += "." + ext
-    Awater = read_table(path)[Nspins*(eta-1):Nspins*eta, :]
+    Aw = pd.read_table(inpath_w, sep="\t", header=None) #.ix[Nspins*(eta-1) : Nspins*eta] BROKEN!
 
-    res = []               # output table
-    for i in spins:
-        Ep = Aplain[i,2]   # plain Pt
-        Ew = Awater[i,6]   # Pt with water
-        if isfloat(Ew) and isfloat(Ep):
+    res = pd.DataFrame(columns=["energy (eV)", "SurfTension (J/m**2)"])
+    for i in spin_list:
+        Ep = Ap.ix[i][2]
+        Ew = Aw.ix[i][6]
+        if pd.notnull(Ew) and pd.notnull(Ep):
             dE = float(Ew) - Ewater - float(Ep)
             dE *= 27.21138505
-            res.append([int(spins[i]), dE, dE*1.602e-19/S])
-    
-    res = np.matrix(res)
+            res.loc[spin_list[i]] = [dE, dE*1.602e-19/S]
     
     if args["--print"]:
-        print_table(res, "Spin \t Energy (eV) \t Surf. tension (J/m**2)")
+         print res
     if args["--save"]:
-        filename = outdir + "/Pt" + cluster + "_E" + str(eta) + "_sigma.out"
+        fout = "Pt" + cluster + "_E" + str(eta) + "_sigma.out"
+        outpath = outdir + "/" + fout
         if args["--ext"]:
-            filename += "." + ext
-        save_table(res, filename)
+            outpath += "." + ext
+        if args["--latex"]:
+            res.to_latex(outpath)
+        else:
+            res.to_csv(outpath, sep="\t")
     
     
