@@ -76,9 +76,9 @@ def read_table(filepath):
 def get_path(Pt_dir, cluster, spin, eta=0, ext=""):
     """get full file path with eta and spin"""
     if eta != 0:
-        path = Pt_dir + "Water" + "/Pt" + cluster + "/Eta_" + str(eta) + "/S_" + str(spin) + "/Pt.out"
+        path = Pt_dir + "/Water" + "/Pt" + cluster + "/Eta_" + str(eta) + "/S_" + str(spin) + "/Pt.out"
     else:
-        path = Pt_dir + "Plain" + "/Pt" + cluster + "/S_" + str(spin) + "/Pt.out"
+        path = Pt_dir + "/Plain" + "/Pt" + cluster + "/S_" + str(spin) + "/Pt.out"
     if ext:
         path += "." + ext
     return path
