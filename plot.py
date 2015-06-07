@@ -143,7 +143,6 @@ if __name__ == "__main__":
             spin_list = range(11)
         
         for spin in spin_list:
-#            if E[0] = 
             fout = fin.replace(".out", "_S" + str(spin) + ".png")
             if args["--convolved"]:
                 sigma = float(args["--sigma"])
