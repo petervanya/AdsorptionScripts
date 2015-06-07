@@ -19,10 +19,11 @@ Options:
 
 pv278@cam.ac.uk, 07/04/15
 """
+from docopt import docopt
 import numpy as np
 from math import sqrt
 import pandas as pd
-from docopt import docopt
+import os
 from iolib import read_table, print_table, save_table
 
 def isfloat(value):
@@ -51,9 +52,10 @@ if __name__ == "__main__":
     eta = int(args["--eta"])
     ext = args["--ext"]
 
-    home_dir = "/home/pv278"
-    indir_p = home_dir + "/Platinum/Plain/Outfiles"
-    indir_w = home_dir + "/Platinum/Water/Outfiles"
+    home_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+
+    indir_p = home_dir + "/Plain/Outfiles"
+    indir_w = home_dir + "/Water/Outfiles"
     fin = "Pt" + cluster + "_summary.out"
     inpath_p = indir_p + "/" + fin
     inpath_w = indir_w + "/" + fin
@@ -72,7 +74,7 @@ if __name__ == "__main__":
     Aw.index = spin_list
 #    print Aw
 
-    res = pd.DataFrame(columns=["energy (eV)", "SurfTension (J/m**2)"])
+    res = pd.DataFrame(columns=["E (eV)", "SurfTension (J/m**2)"])
     for i in spin_list:
         Ep = Ap.ix[i][2]
         Ew = Aw.ix[i][6]
