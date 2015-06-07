@@ -72,7 +72,7 @@ if __name__ == "__main__":
         path += "." + ext
     Aw = pd.read_table(inpath_w, header=None)[Nspins*(eta-1) : Nspins*eta]
     Aw.index = spin_list
-#    print Aw
+    print Aw
 
     res = pd.DataFrame(columns=["E (eV)", "SurfTension (J/m**2)"])
     for i in spin_list:
