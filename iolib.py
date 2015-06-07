@@ -10,7 +10,7 @@ import numpy as np
 from numpy.matlib import repmat
 from math import *
 
-def save_xyz(coords,atom_names,filename):
+def save_xyz(coords, atom_names, filename):
     """save xyz coords into file"""
     f = open(filename,"w")
     M,N = coords.shape
@@ -38,8 +38,8 @@ def read_xyz(filepath):
     data = A[:,1:].astype(float)
     return names, data
 
-def save_table(A, filepath, header=False):
-    """save table A into file"""
+def save_table(A, filepath, header=False, latex=False):
+    """save table A into file, possibly with latex formatting"""
     f = open(filepath,"w")
     M,N = A.shape
     if header:
@@ -48,12 +48,15 @@ def save_table(A, filepath, header=False):
         line = ""
         for j in range(N):
             line += str(A[i,j]) + "\t"
+        if latex:
+            line = "  &  ".join(line.split())
+            line += "  \\\\"
         line += "\n"
         f.write(line)
     f.close()
     print "Table saved to",filepath
 
-def print_table(A,header=""):
+def print_table(A, header=""):
     if header:
         print header
     M,N = A.shape
@@ -107,38 +110,6 @@ def rotate_phi(coords,phi):
     return coords
 
 
-def get_bandgap(cluster, spin, dir="/home/pv278/Platinum/"):
-    """Extract band gap (highest occ value - lowest virt value)
-       and from the files for a specific spin"""
-    outfile = open(get_path(dir, cluster, spin)).readlines()
-    line = [l for l in outfile if "occ" in l]
-    if line:
-        Eocc = line[-1].split()[-1]
-    else:
-        Eocc = None
-    line = [l for l in outfile if "virt" in l]
-    if line:
-        Evirt = line[0].split()[4]
-    else:
-        Evirt = None
-    
-    if Eocc:
-        return (float(Evirt) - float(Eocc))*27.211
-    else:
-        return
-
-def get_all_bandgaps(cluster, spin_list, dir="/home/pv278/Platinum/"):
-    """Extract band gaps for all spins"""
-    E = []
-    s = []
-    for spin in spin_list:
-        Ebg = get_bandgap(cluster, spin, dir)
-        if Ebg:
-            E.append(Ebg)
-            s.append(spin)
-
-    A = np.vstack((s,E))
-    return A.T
 
 
 
