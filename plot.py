@@ -12,7 +12,7 @@ Arguments:
 Options:
     -s <s>,--spin <s>   Spin state to plot
     --convolved         Continuous DoS plot using gaussians instead of histograms
-    --sigma <s>         Std dev of the convoluting gaussian [default: 2.0]
+    --sigma <s>         Std dev of the convoluting gaussian [default: 1.0]
 
 pv278@cam.ac.uk, 21/01/14
 """
@@ -37,7 +37,6 @@ def plot_spin(E1, E2, fout):
     plt.xlabel("$E - E_F$ (eV)")
     plt.ylabel("DoS")
     plt.xlim([xmin, xmax])
-    #plt.ylim([0, 50])
     spin = re.findall("S\d{1,2}", fout)[0][1:]
     plt.title("Density of states, $S$=" + spin)
 
@@ -47,7 +46,7 @@ def plot_spin(E1, E2, fout):
 
 def plot_spin_convolved(MO, occMO, fout, sigma):
     """Plot DoS with gaussian-smoothed MOs"""
-    font = 16
+    fs = 16
     xmin = min(MO) - 1.0
     xmax = max(MO) + 1.0
     xlim = [-10, 30]
@@ -63,11 +62,11 @@ def plot_spin_convolved(MO, occMO, fout, sigma):
     fig = plt.figure()
     
     ax1 = fig.add_subplot(2,1,1)
-    ax1.plot(energy, DoS)
-    ax1.set_ylabel("DoS", fontsize=font)
+    ax1.plot(energy, DoS, linewidth=2.0)
+    #ax1.set_ylabel("DoS", fontsize=fs)
     ax1.set_xlim(xlim)
     spin = re.findall("S\d{1,2}", fout)[0][1:]
-    ax1.set_title("Density of states, $S$=" + spin, fontsize=font)
+    ax1.set_title("Density of states, $S$=" + spin, fontsize=fs)
     ax1.set_xticklabels([])
     ax1.set_yticklabels([])
 
@@ -75,7 +74,7 @@ def plot_spin_convolved(MO, occMO, fout, sigma):
     Bins = np.arange(xlim[0], xlim[1], 0.01)
     ax2.hist(MO, bins=Bins, color="r", edgecolor="r")
     ax2.hist(occMO, bins=Bins, color="g", edgecolor="g")
-    ax2.set_xlabel("$E$ - $E_F$ (eV)", fontsize=font)
+    ax2.set_xlabel("$E$ - $E_F$ (eV)", fontsize=fs)
     ax2.set_ylim([0, 1])
     ax2.set_yticks([0,1])
     ax2.set_yticklabels([])
@@ -87,26 +86,31 @@ def plot_spin_convolved(MO, occMO, fout, sigma):
     plt.close()
     print "Figure saved in", fout
 
-def scatter_bandgap(cluster, dir):
+
+def plot_bandgap(cluster, dir):
     """function to plot bandgap v.s. spin state"""
+    fs = 16
     fin = dir + "Pt" + cluster + "_bandgap.out"
     A = np.loadtxt(fin)
-    print A.shape
     spin = A[:,0]
     Eg = A[:,1]
 
-    plt.scatter(spin, Eg)
-    plt.xlabel("Spin")
-    plt.ylabel("$E_{\\mathrm{gap}}$ (eV)")
-    plt.title("Pt " + cluster)
+    sct = plt.plot(spin, Eg, "bo", ms=10)
+#    plt.setp(sct, lw=4.0)
+    plt.xlim([-0.1, 10.1])
+    plt.xlabel("Spin", fontsize=fs)
+    plt.ylabel("$E_{\\mathrm{gap}}$ (eV)", fontsize=fs)
+    plt.title("Pt " + cluster.replace("_","."), fontsize=fs)
 
     fout = fin.replace(".out", ".png")
     plt.savefig(fout)
     plt.close()
     print "Figure saved in",fout
 
+
 def gaussian(x, mu, sigma=0.1):
     return exp(-(x-mu)**2/(2*sigma**2)) / sqrt(2*pi*sigma**2)
+
 
 def shift_to_Fermi(E, Eocc):
     """Shift e-values so that E=0 at the Fermi surface"""
@@ -148,6 +152,6 @@ if __name__ == "__main__":
                 plot_spin(E[:,spin], Eocc[:,spin], fout)
 
     if args["bandgap"]:
-        scatter_bandgap(cluster, base_dir)
+        plot_bandgap(cluster, base_dir)
 
 
