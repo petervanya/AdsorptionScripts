@@ -68,7 +68,9 @@ if __name__ == "__main__":
     Ap = pd.read_table(inpath_p, header=None, index_col=False)
     if ext:
         path += "." + ext
-    Aw = pd.read_table(inpath_w, sep="\t", header=None) #.ix[Nspins*(eta-1) : Nspins*eta] BROKEN!
+    Aw = pd.read_table(inpath_w, header=None)[Nspins*(eta-1) : Nspins*eta]
+    Aw.index = spin_list
+#    print Aw
 
     res = pd.DataFrame(columns=["energy (eV)", "SurfTension (J/m**2)"])
     for i in spin_list:
@@ -83,12 +85,13 @@ if __name__ == "__main__":
          print res
     if args["--save"]:
         fout = "Pt" + cluster + "_E" + str(eta) + "_sigma.out"
-        outpath = outdir + "/" + fout
+        outpath = indir_w + "/" + fout
         if args["--ext"]:
             outpath += "." + ext
         if args["--latex"]:
             res.to_latex(outpath)
         else:
             res.to_csv(outpath, sep="\t")
+            print "Table saved in",outpath
     
     
