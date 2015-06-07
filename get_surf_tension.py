@@ -52,13 +52,10 @@ if __name__ == "__main__":
     eta = int(args["--eta"])
     ext = args["--ext"]
 
-    home_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-
-    indir_p = home_dir + "/Plain/Outfiles"
-    indir_w = home_dir + "/Water/Outfiles"
     fin = "Pt" + cluster + "_summary.out"
-    inpath_p = indir_p + "/" + fin
-    inpath_w = indir_w + "/" + fin
+    Pt_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+    inpath_p = Pt_dir + "/Plain/Outfiles/" + fin
+    inpath_w = Pt_dir + "/Water/Outfiles/" + fin
 
     Ewater = -76.393551              # ZP corrected B3LYP/LANL2DZ
     a = 2.775
@@ -72,9 +69,8 @@ if __name__ == "__main__":
         path += "." + ext
     Aw = pd.read_table(inpath_w, header=None)[Nspins*(eta-1) : Nspins*eta]
     Aw.index = spin_list
-    print Aw
 
-    res = pd.DataFrame(columns=["E (eV)", "SurfTension (J/m**2)"])
+    res = pd.DataFrame(columns=["$E$ (eV)", "$\sigma$ (J/m$^2$)"])
     for i in spin_list:
         Ep = Ap.ix[i][2]
         Ew = Aw.ix[i][6]
@@ -87,7 +83,7 @@ if __name__ == "__main__":
          print res
     if args["--save"]:
         fout = "Pt" + cluster + "_E" + str(eta) + "_sigma.out"
-        outpath = indir_w + "/" + fout
+        outpath = Pt_dir + "/Water/Outfiles/" + fout
         if args["--ext"]:
             outpath += "." + ext
         if args["--latex"]:

@@ -95,13 +95,14 @@ if __name__ == "__main__":
 #    print args
     
     cluster = args["<cluster>"]
-    Pt_dir = "/home/pv278/Platinum/"
+    Pt_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..")) # "~/Platinum
+
     if args["--dir"]:
-        base_dir = Pt_dir + args["--dir"]
+        base_dir = Pt_dir + "/" + args["--dir"]
     else:
-        base_dir = Pt_dir + "Plain/"
+        base_dir = Pt_dir + "/Plain"
     
-    outdir = base_dir + "Outfiles/Evals"
+    outdir = base_dir + "/Outfiles/Evals"
     if not os.path.exists(outdir):
         os.makedirs(outdir)
         print outdir,"created"

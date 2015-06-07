@@ -19,6 +19,7 @@ pv278@cam.ac.uk, 28/04/15
 """
 from docopt import docopt
 import numpy as np
+import os
 from iolib import save_table, print_table, get_path
 
 def get_table_plain(Pt_dir, spin_list, ext=""):
@@ -111,7 +112,7 @@ if __name__ == "__main__":
 #    print args
     
     cluster = args["<cluster>"]
-    Pt_dir = "/home/pv278/Platinum/"
+    Pt_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..")) # "~/Platinum"
     spin_list = range(11)
 
     if args["--ext"]:
@@ -121,12 +122,12 @@ if __name__ == "__main__":
 
     if args["plain"]:
         header = "Spin\tconv\tE\t\tcycles\terr\truntime"
-        outfile_path = Pt_dir + "Plain/Outfiles/"
+        outfile_path = Pt_dir + "/Plain/Outfiles/"
         A = get_table_plain(Pt_dir, spin_list, ext)
         
     elif args["water"]:
         header = "Eta\tSpin\tSucc\tReason\tSteps\tMSteps\tE\truntime\tDate"
-        outfile_path = Pt_dir + "Water/Outfiles/"
+        outfile_path = Pt_dir + "/Water/Outfiles/"
         if args["--eta"]:
             A = get_table_water(Pt_dir, spin_list, args["--eta"], ext)
         else:
