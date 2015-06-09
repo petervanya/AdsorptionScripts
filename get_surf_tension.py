@@ -24,6 +24,7 @@ import numpy as np
 from math import sqrt
 import pandas as pd
 import os
+import sys
 from iolib import read_table, print_table, save_table
 
 def isfloat(value):
@@ -66,11 +67,11 @@ if __name__ == "__main__":
 #    names = ["spin", "converged", "E", "cycles", "error", "time"]
     Ap = pd.read_table(inpath_p, header=None, index_col=False)
     if ext:
-        path += "." + ext
+        inpath_w += "." + ext
     Aw = pd.read_table(inpath_w, header=None)[Nspins*(eta-1) : Nspins*eta]
     Aw.index = spin_list
 
-    res = pd.DataFrame(columns=["$E$ (eV)", "$\sigma$ (J/m$^2$)"])
+    res = pd.DataFrame(columns=["$E_\mathrm{b}$ (eV)", "$\sigma$ (J/m$^2$)"])
     for i in spin_list:
         Ep = Ap.ix[i][2]
         Ew = Aw.ix[i][6]
@@ -78,6 +79,7 @@ if __name__ == "__main__":
             dE = float(Ew) - Ewater - float(Ep)
             dE *= 27.21138505
             res.loc[spin_list[i]] = [dE, dE*1.602e-19/S]
+    res.index.name = "Spin"
     
     if args["--print"]:
          print res
@@ -87,9 +89,9 @@ if __name__ == "__main__":
         if args["--ext"]:
             outpath += "." + ext
         if args["--latex"]:
-            res.to_latex(outpath)
+            res.to_latex(outpath, escape=False) #outpath)
         else:
             res.to_csv(outpath, sep="\t")
-            print "Table saved in",outpath
+        print "Table saved in",outpath
     
     
