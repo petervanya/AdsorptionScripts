@@ -25,9 +25,9 @@ def init_water():
     alpha = radians(104.45)                   # angle between H atoms
     l_OH = 0.9584                             # bond length between O and H
     coords = np.zeros((3,3))
-    coords[1,0] += l_OH*sin(alpha/2)
-    coords[2,0] += -l_OH*sin(alpha/2)
-    coords[1:3,2] += l_OH*cos(alpha/2)
+    coords[1,0] += 0.757009                   # Before: l_OH*sin(alpha/2)
+    coords[2,0] += -0.757009                  # Before: -l_OH*sin(alpha/2)
+    coords[1:3,2] += 0.593565                 # Before: l_OH*cos(alpha/2)
     return coords
 
 def shift(coords, s):
