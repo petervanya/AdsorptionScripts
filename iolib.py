@@ -13,22 +13,22 @@ from math import *
 def save_xyz(coords, atom_names, filename):
     """save xyz coords into file"""
     f = open(filename,"w")
-    M,N = coords.shape
+    M, N = coords.shape
     for i in range(M):
         line = str(atom_names[i])+"\t"
         for j in range(N):
-            line += "%.6f" % coords[i,j] + "\t"
+            line += "%.6f" % coords[i, j] + "\t"
         line += "\n"
         f.write(line)
     f.close()
     print "Coords saved to",filename
 
 def print_xyz(coords, atom_names):
-    M,N = coords.shape
+    M, N = coords.shape
     for i in range(M):
         line = atom_names[i] + "\t"
         for j in range(N):
-            line += "%.6f" % coords[i,j] + "\t"
+            line += "%.6f" % coords[i, j] + "\t"
         print line
 
 def read_xyz(filepath):
@@ -47,7 +47,7 @@ def save_table(A, filepath, header=False, latex=False):
     for i in range(M):
         line = ""
         for j in range(N):
-            line += str(A[i,j]) + "\t"
+            line += str(A[i, j]) + "\t"
         if latex:
             line = "  &  ".join(line.split())
             line += "  \\\\"
@@ -63,7 +63,7 @@ def print_table(A, header=""):
     for i in range(M):
         line=""
         for j in range(N):
-            line += str(A[i,j]) + "\t"
+            line += str(A[i, j]) + "\t"
         print line
 
 def read_table(filepath):
@@ -83,12 +83,12 @@ def get_path(Pt_dir, cluster, spin, eta=0, ext=""):
         path += "." + ext
     return path
 
-def shift(coords,s):
+def shift(coords, s):
     """shift coordinates by a given vector s"""
     N = len(coords)
     return coords + repmat(s,N,1)
 
-def rotate_theta(coords,theta):
+def rotate_theta(coords, theta):
     """rotate atoms by an angle theta (in radians)"""
     N = coords.shape[0]
     Rtheta = np.array([[cos(theta),0,-sin(theta)],
@@ -96,23 +96,17 @@ def rotate_theta(coords,theta):
                        [sin(theta),0, cos(theta)]])
 
     for i in range(N):
-        coords[i,:] = np.dot(Rtheta,coords[i,:])
+        coords[i,:] = np.dot(Rtheta, coords[i,:])
     return coords
 
-def rotate_phi(coords,phi):
+def rotate_phi(coords, phi):
     """rotate atoms by angle phi (in radians)"""
     N = coords.shape[0]
     Rphi = np.array([[cos(phi),-sin(phi),0],
                      [sin(phi), cos(phi),0],
                      [0,        0,       1]])
     for i in range(N):
-        coords[i,:] = np.dot(Rphi,coords[i,:])
+        coords[i,:] = np.dot(Rphi, coords[i,:])
     return coords
-
-
-
-
-
-
 
 
