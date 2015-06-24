@@ -21,7 +21,7 @@ class Atoms:
         """number of atoms"""
         return len(self.coords)
 
-    def __str__(self):
+    def __repr__(self):
         """print xyz onto screen"""
         M, N = self.coords.shape
         line = ""
