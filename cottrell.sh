@@ -5,8 +5,7 @@ usage(){
   Script to submit Gaussian adsorption runs to the Cottrell
 
   Arguments:
-  1st  directory name "Water" or "Plain"
-  2nd  subdirectory name, e.g. Pt9_10_9/Eta_*/S_*
+  1st  directory name, e.g. "Water" or "Plain" + "Pt9_10_9/Eta_*/S_*"
   3rd  file name without extension"
   exit 0
 }
@@ -30,8 +29,7 @@ export g09root GAUSS_SCRDIR GAUSS_EXEDIR
 # =======================
 
 dir=$1
-config=$2
-file=$3
+file=$2
 
-cd /home/pv278/Platinum/$dir/$config
+cd /home/pv278/Platinum/$dir
 /home/Gaussian/g09/g09 < $file.gjf > $file.out
