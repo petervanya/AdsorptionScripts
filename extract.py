@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """Usage:
-    extract.py <dir> <cluster> [--save]
+    extract.py <dir> <cluster> [--sort] [--save]
 
 New version of parse.py script
 
@@ -9,6 +9,7 @@ Arguments:
     <cluster>  Pt cluster, e.g. 9_10_9
 
 Options:
+    --sort     Sort states by energy, lowest to highest
     --save     Save into a summary file
 
 pv278@cam.ac.uk, 23/06/15
@@ -61,7 +62,7 @@ def summary_opt(base_dir, cluster, spins, cols):
         A.ix[i, "runtime"] = temp[3]+":"+temp[5]+":"+temp[7]+":"+temp[9]
         
         temp = [l for l in fin if "termination" in l][-1].split()
-        A.ix[i, "datetime"] = temp[-4]+" "+temp[-3]+" "+temp[-1][0:-1]
+        A.ix[i, "date"] = temp[-4]+" "+temp[-3]+" "+temp[-1][0:-1]
     
     return A
 
@@ -72,7 +73,7 @@ if __name__ == "__main__":
     pd.set_option('display.width', 100)
 
     base_dir = os.path.abspath(os.path.join(os.getcwd(), "..", args["<dir>"]))
-    cols = ["succ", "reason", "E", "steps", "maxsteps", "runtime", "datetime"]
+    cols = ["succ", "reason", "E", "steps", "maxsteps", "runtime", "date"]
     cluster = args["<cluster>"]
     spins = range(11)
 
@@ -81,10 +82,13 @@ if __name__ == "__main__":
     if args["--save"]:
         outfile = "Pt" + cluster + "_opt_summary.csv"
         outpath = os.path.join(base_dir, "Outfiles", outfile)
-        A.to_csv(outpath, sep="\t")
+        A.to_csv(outpath, sep="\t", na_rep="NaN")
         print "Table saved in", outpath
     else:
-        print A
+        if args["--sort"]:
+            print A.sort("E", ascending=False)
+        else:
+            print A
 
 
 
