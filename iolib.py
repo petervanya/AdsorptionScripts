@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 """
 Collection of often used functions for
--- input/output
--- rotating, translating and printing data
+* input/output
+* rotating, translating and printing data
+NOW OBSOLETE
 
 pv278@cam.ac.uk, 11/05/15
 """
@@ -76,9 +77,9 @@ def read_table(filepath):
 def get_path(Pt_dir, cluster, spin, eta=0, ext=""):
     """get full file path with eta and spin"""
     if eta != 0:
-        path = Pt_dir + "/Water" + "/Pt" + cluster + "/Eta_" + str(eta) + "/S_" + str(spin) + "/Pt.out"
+        path = Pt_dir + "/Pt_Water" + "/Pt" + cluster + "/Eta_" + str(eta) + "/S_" + str(spin) + "/Pt.out"
     else:
-        path = Pt_dir + "/Plain" + "/Pt" + cluster + "/S_" + str(spin) + "/Pt.out"
+        path = Pt_dir + "/Pt_SP" + "/Pt" + cluster + "/S_" + str(spin) + "/Pt.out"
     if ext:
         path += "." + ext
     return path
