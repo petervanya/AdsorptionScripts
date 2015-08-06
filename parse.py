@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """Usage:
-    parse.py (plain | water [-e <e>]) <cluster> [-d <d>] [--sort] (--print | --save)
+    parse.py (plain | water [-e <e>]) <cluster> [-d <d>] [--sort] [--save]
              [--ext <ext>]
 
 Script to parse values from output files
@@ -12,6 +12,7 @@ Options:
     -h,--help         Show this message and exit
     -d <d>,--dir=<d>  Dir w output files after ~/Platinum/ [Default: Plain]
     --sort            Sort the spin states by energy
+    --save            Save file in Outfiles dir
     -e <e>,--eta <e>  Adsorption site, 1, 2 or 3
     --ext <ext>       File extension, e.g. "nosymm"
 
@@ -107,27 +108,24 @@ def get_table_water(Pt_dir, spin_list, eta, ext=""):
     A = np.vstack((spins,succ,reason,steps,maxsteps,E,runtime,datetime)).T
     return A
 
+
 if __name__ == "__main__":
-    args = docopt(__doc__,version=0.1)
+    args = docopt(__doc__, version=0.1)
 #    print args
     
     cluster = args["<cluster>"]
     Pt_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..")) # "~/Platinum"
     spin_list = range(11)
-
-    if args["--ext"]:
-        ext = args["--ext"]
-    else:
-        ext = ""
+    ext = args["--ext"] if args["--ext"] else ""
 
     if args["plain"]:
         header = "Spin\tconv\tE\t\tcycles\terr\truntime"
-        outfile_path = Pt_dir + "/Plain/Outfiles/"
+        outfile_path = Pt_dir + "/Pt_SP/Outfiles/"
         A = get_table_plain(Pt_dir, spin_list, ext)
         
     elif args["water"]:
         header = "Eta\tSpin\tSucc\tReason\tSteps\tMSteps\tE\truntime\tDate"
-        outfile_path = Pt_dir + "/Water/Outfiles/"
+        outfile_path = Pt_dir + "/Pt_Water/Outfiles/"
         if args["--eta"]:
             A = get_table_water(Pt_dir, spin_list, args["--eta"], ext)
         else:
@@ -142,14 +140,13 @@ if __name__ == "__main__":
         A = A[A[:,2].argsort()]
         A = A[::-1,:]
     
-    if args["--print"]:
-        print_table(A,header)
-
     if args["--save"]:
         filename = "Pt" + cluster + "_summary.out"
         if args["--ext"]:
             filename += "." + ext
         save_table(A,outfile_path + filename)
+    else:
+        print_table(A,header)
 
 
 
